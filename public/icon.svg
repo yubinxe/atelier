@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <title>Atelier</title>
+  <rect width="64" height="64" rx="16" fill="#ffffff"/>
+  <path d="M15 49 L30 14" stroke="#1F63E0" stroke-width="8" stroke-linecap="round"/>
+  <path d="M34 14 L49 49" stroke="#E5484D" stroke-width="8" stroke-linecap="round"/>
+  <path d="M22 37 H38" stroke="#F2A900" stroke-width="7" stroke-linecap="round"/>
+  <circle cx="32" cy="12.5" r="5" fill="#1E9E5A"/>
+</svg>
