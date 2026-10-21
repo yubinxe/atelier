@@ -1,7 +1,6 @@
 {
   "trailingSlash": true,
   "buildCommand": "",
-  "installCommand": "",
   "outputDirectory": "public",
   "framework": null,
   "rewrites": [
@@ -45,6 +44,20 @@
           "value": "no-cache"
         }
       ]
+    },
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store"
+        }
+      ]
     }
-  ]
+  ],
+  "functions": {
+    "api/**/*.js": {
+      "maxDuration": 60
+    }
+  }
 }
