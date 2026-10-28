@@ -58,9 +58,9 @@ export function linear(p, live) {
 
 // ── 입체: 아이소메트릭 계단 ──
 const IX = 21, IY = 10.5, IZ = 22;
-const iso = (gx, gy, z) => [(gx - gy) * IX, (gx + gy) * IY - z * IZ];
+export const iso = (gx, gy, z) => [(gx - gy) * IX, (gx + gy) * IY - z * IZ];
 const pts = (a) => a.map(([x, y]) => `${x.toFixed(1)},${y.toFixed(1)}`).join(" ");
-function box(gx, gy, z, w, d, h, cls) { // 바닥 모서리(gx,gy,z), 너비 w(gx) 깊이 d(gy) 높이 h
+export function box(gx, gy, z, w, d, h, cls) { // 바닥 모서리(gx,gy,z), 너비 w(gx) 깊이 d(gy) 높이 h
   const P = (a, b, c) => iso(gx + a, gy + b, z + c);
   const top = [P(0, 0, h), P(w, 0, h), P(w, d, h), P(0, d, h)], left = [P(0, d, h), P(w, d, h), P(w, d, 0), P(0, d, 0)], right = [P(w, 0, h), P(w, d, h), P(w, d, 0), P(w, 0, 0)];
   return `<g class="${cls}"><polygon class="l" points="${pts(left)}"/><polygon class="r" points="${pts(right)}"/><polygon class="t" points="${pts(top)}"/></g>`;

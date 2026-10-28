@@ -422,8 +422,9 @@ details.now[open] dl { margin-top: 14px; padding-top: 14px; border-top: 1px soli
 .ev.fresh { animation: pop .5s cubic-bezier(.16,1,.3,1); transform-box: fill-box; transform-origin: center; }
 .ev.wait circle { animation: blink 1.4s ease-in-out infinite; }
 @keyframes pop { from { opacity: 0; } to { opacity: 1; } }
-.pawn2 circle { fill: var(--fg3); stroke: var(--sf); stroke-width: 2; } .pawn2 text { fill: #fff; font: 700 10px var(--sans); text-anchor: middle; }
-.pawn2.live circle { fill: var(--ac); } .pawn2.wait circle { fill: #b07800; } .pawn2.fail circle { fill: #e5484d; } .pawn2.done circle { fill: var(--ink); }
+.pawn2 circle { fill: var(--fg3); stroke: var(--sf); stroke-width: 2; } .pawn2 text { fill: #fff; font: 700 8.5px var(--sans); text-anchor: middle; letter-spacing: -.02em; }
+.pawn2.blue circle { fill: #1f63e0; } .pawn2.yellow circle { fill: #f2a900; } .pawn2.yellow text { fill: #3a2a00; } .pawn2.green circle { fill: #1e9e5a; } .pawn2.red circle { fill: #e5484d; }
+.pawn2.fail circle { stroke: #e5484d; stroke-width: 3; } .pawn2.done, .pawn2.idle { opacity: .6; }
 .pawn2.live { animation: bob2 1.6s ease-in-out infinite; } @keyframes bob2 { 50% { translate: 0 -3px; } }
 ol.evlist { list-style: none; margin: 0; padding: 4px 18px 14px; display: grid; gap: 4px; max-height: 320px; overflow: auto; }
 .evlist li { display: grid; grid-template-columns: 64px 84px 1fr; gap: 8px; font-size: 13px; color: var(--fg); align-items: baseline; }
@@ -440,3 +441,41 @@ ol.evlist { list-style: none; margin: 0; padding: 4px 18px 14px; display: grid; 
   .bridge-cta { flex-wrap: wrap; } .bridge-cta span:not(.live-dot) { flex-basis: 100%; order: 3; }
 }
 @media (prefers-reduced-motion: reduce) { .ev.fresh, .ev.wait circle, .pawn2.live { animation: none !important; } }
+
+/* ── v6 — AI 작업 모델하우스(시뮬레이션) ── */
+.bridge .ph .toggle { align-self: flex-end; }
+.simbar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 10px 14px; margin-bottom: 12px; }
+.simbar .chip { margin: 0; } .simclock { margin-left: auto; font: 500 12px var(--mono); color: var(--fg3); }
+.simbar form.inline { display: flex; gap: 8px; } .simbar form.inline input { min-height: 34px; border: 1px solid var(--rule2); border-radius: 999px; padding: 0 14px; font: inherit; font-size: 13.5px; width: 160px; }
+.mh { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 12px; margin-bottom: 12px; align-items: stretch; }
+.floorbox { padding: 6px 10px 0; overflow-x: auto; scrollbar-width: thin; } .floor { display: block; width: 100%; min-width: 560px; height: auto; max-height: 560px; }
+.floor .ground { fill: color-mix(in srgb, var(--raise) 55%, var(--sf)); stroke: var(--rule); }
+.floor .walk { stroke: var(--rule2); stroke-width: 1.5; stroke-dasharray: 2 5; fill: none; }
+.floor .pad .t { fill: var(--sf); stroke: var(--rule2); stroke-width: 1; } .floor .pad .l { fill: var(--raise); stroke: var(--rule2); } .floor .pad .r { fill: color-mix(in srgb, var(--rule2) 60%, var(--raise)); stroke: var(--rule2); }
+.floor .st .pad .t { transition: fill .4s, stroke .4s; } .floor .st.busy .pad .t { fill: color-mix(in srgb, var(--ac) 8%, var(--sf)); stroke: var(--ac); }
+.floor .st.gate.busy .pad .t { fill: color-mix(in srgb, #1e9e5a 10%, var(--sf)); stroke: #1e9e5a; } .floor .st.lounge.busy .pad .t { fill: color-mix(in srgb, #f2a900 12%, var(--sf)); stroke: #b07800; }
+.floor .st-n { font: 650 9.5px var(--sans); fill: var(--fg3); text-anchor: middle; letter-spacing: -.01em; } .floor .st.busy .st-n { fill: var(--ink); }
+.floor .st-c { font: 600 9px var(--mono); fill: var(--acfg); }
+.fp { transition: transform .9s cubic-bezier(.45,0,.2,1), opacity .5s; --c: var(--fg3); } .fp.blue { --c: #1f63e0; } .fp.yellow { --c: #e0a000; } .fp.green { --c: #1e9e5a; } .fp.red { --c: #e5484d; } .fp.ink { --c: var(--ink); }
+.fp .sh { fill: #10182824; } .fp .body { fill: var(--c); } .fp .head { fill: var(--c); stroke: var(--sf); stroke-width: 2.5; }
+.fp .ini { fill: #fff; font: 700 9.5px var(--sans); text-anchor: middle; letter-spacing: -.02em; } .fp.yellow .ini { fill: #3a2a00; }
+.fp .tag rect { fill: var(--ink); } .fp .tag text { fill: #fff; font: 600 10px var(--sans); text-anchor: middle; }
+.fp.live .head, .fp.live .ini { animation: bob 1.4s ease-in-out infinite; }
+.fp.fail .tag rect { fill: #e5484d; } .fp.fail .head { stroke: #e5484d; animation: failp 1s ease-out infinite; }
+.fp.wait .tag rect { fill: #b07800; } .fp.done .tag rect { fill: #1e9e5a; } .fp.done { opacity: .85; }
+@keyframes failp { 0% { stroke-width: 2.5; } 50% { stroke-width: 6; } 100% { stroke-width: 2.5; } }
+.ticker { padding: 14px 16px; display: flex; flex-direction: column; min-height: 0; }
+.ticker ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.ticker li { display: grid; grid-template-columns: 24px 44px 1fr auto; gap: 6px; align-items: center; font-size: 12.5px; padding: 5px 4px; border-radius: 8px; }
+.ticker li.new { animation: rise .45s cubic-bezier(.16,1,.3,1); }
+.ticker li:first-child { background: var(--bg); } .ticker .tt { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--fg); } .ticker time { font: 500 10.5px var(--mono); color: var(--fg3); }
+.ticker li.fail .tt { color: var(--bad); font-weight: 600; }
+.srcdot { display: inline-grid; place-items: center; width: 22px; height: 18px; border-radius: 6px; font: 700 9.5px/1 var(--sans); font-style: normal; color: #fff; background: var(--fg3); flex: none; letter-spacing: -.02em; }
+.srcdot.blue { background: #1f63e0; } .srcdot.yellow { background: #f2a900; color: #3a2a00; } .srcdot.green { background: #1e9e5a; } .srcdot.red { background: #e5484d; } .srcdot.ink { background: var(--ink); }
+.bkey li .srcdot { margin-right: 2px; }
+.lane-h .chev { font-style: normal; color: var(--fg3); transition: transform .25s; } .lane-h[aria-expanded="true"] .chev { transform: rotate(180deg); }
+.is-sim .lane.live { box-shadow: none; }
+@media (max-width: 1100px) { .mh { grid-template-columns: 1fr; } .ticker ol { max-height: 260px; overflow: auto; } }
+@media (max-width: 680px) { .bridge .ph .toggle { align-self: flex-start; } .simclock { margin-left: 0; flex-basis: 100%; } .floorbox { padding: 0; } }
+@media (prefers-reduced-motion: reduce) { .fp, .fp .head, .fp .ini, .ticker li { transition: none !important; animation: none !important; } }
+.lane-h i.srcdot { color: #fff; } .lane-h i.srcdot.yellow { color: #3a2a00; }

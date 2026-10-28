@@ -29,17 +29,8 @@ export function normEvent(e, now = Date.now()) {
   };
 }
 
-// 세션 요약 — 최근 이벤트(시간 오름차순)에서 계산. 2분 넘게 소식 없으면 '조용함'.
-export function sessions(events, now = Date.now()) {
-  const m = new Map();
-  for (const e of events) {
-    const s = m.get(e.session) || { session: e.session, source: e.source, agent: e.agent, project: e.project, first: e.at, count: 0, kinds: {} };
-    s.last = e.at; s.lastKind = e.kind; s.lastTitle = e.title; s.count++; s.kinds[e.kind] = (s.kinds[e.kind] || 0) + 1; if (e.project) s.project = e.project;
-    m.set(e.session, s);
-  }
-  return [...m.values()].map((s) => ({ ...s, state: s.lastKind === "fail" ? "fail" : ["done"].includes(s.lastKind) ? "done" : s.lastKind === "wait" ? "wait" : now - Date.parse(s.last) > 12e4 ? "idle" : "live" }))
-    .sort((a, b) => Date.parse(b.last) - Date.parse(a.last));
-}
+// 세션 요약은 화면(시뮬레이션)과 같이 쓴다
+export { sessions } from "../../public/studio/bridge.js";
 
 // ── Supabase REST ──
 const rest = (env, path, init = {}) => fetch(`${env.SUPABASE_URL.replace(/\/$/, "")}/rest/v1/${path}`, { ...init,
