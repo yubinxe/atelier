@@ -1,6 +1,7 @@
 // Atelier AX · Project Studio — 화면(해시 라우터). 상태 전이는 model.js, 저장은 이 브라우저(localStorage)만.
 import * as M from "./model.js";
 import * as BD from "./board.js";
+import * as BR from "./bridge.js";
 
 const KEY = "atelier.studio.v1", PREF = "atelier.studio.prefs";
 const $ = (s, el = document) => el.querySelector(s), $$ = (s, el = document) => [...el.querySelectorAll(s)];
@@ -117,10 +118,11 @@ function paintConsole() {
 const app = $("#app");
 let timer = null;
 function route() {
-  clearInterval(timer); timer = null;
+  clearInterval(timer); timer = null; clearInterval(btimer); btimer = null;
   const [, a, id, tab] = location.hash.split("/");
   if (a === "p" && find(id)) project(find(id), tab || "flow");
   else if (a === "live") live();
+  else if (a === "bridge") bridge();
   else home();
   $("#expert")?.setAttribute("aria-pressed", String(!!prefs.expert));
 }
@@ -157,6 +159,7 @@ function home() {
         <span class="lstate ${liveOk() ? "on" : ""}">${LIVE.info ? (liveOk() ? `실제 AI 연결됨 · ${esc(LIVE.info.model)}` : `실제 AI 연결 안 됨 — ${esc(LIVE.info.reason)}`) : "연결 확인 중…"}</span></div>
       <p class="fine">${mode === "live" ? "실제 AI 실행 — 기획·설계·제작 산출물과 검사 판정을 Claude가 실제로 씁니다. 다만 코드 실행·배포는 연결돼 있지 않아, 검사는 <b>AI 검토</b>(실행 아님)로 표시하고 공개는 하지 않습니다. 개인정보는 입력하지 마세요." : "공개 시연입니다 — 설계도는 <b>키워드 규칙으로 만든 초안</b>이고, 이후 단계는 이 브라우저 안에서 <b>가상으로</b> 진행됩니다. 실제 AI 호출·코드 실행·배포는 일어나지 않습니다. 개인정보는 입력하지 마세요."}</p>
     </form>
+    <a class="bridge-cta" href="#/bridge"><span class="live-dot ${LIVE.info?.bridge ? "on" : ""}" aria-hidden="true"></span><b>지금 일하는 AI 보기</b><span>Claude Code 등 연결한 AI의 작업을 실시간 보드로</span><i aria-hidden="true">→</i></a>
   </section>
   <section class="wrap"><h2 class="h2">어떤 일을 시작하시겠습니까?</h2>
     <div class="grid3">${Object.entries(M.CATEGORIES).map(([k, c], i) => `<button class="card pick" data-ex="${k}"><span class="ico ${["blue", "yellow", "green"][i]}" aria-hidden="true">${["◧", "✎", "⟳"][i]}</span><b>${esc(c.name)}</b><span>${esc(c.hint.replace(/^예: /, ""))}</span></button>`).join("")}</div>
@@ -178,7 +181,7 @@ function home() {
       <div class="card"><b>통제할 수 있게</b><p>범위·설계·공개는 당신의 승인 없이 넘어가지 않습니다. 언제든 멈추고, 반려하면 그 단계부터 다시 합니다.</p></div>
       <div class="card"><b>검증할 수 있게</b><p>‘완성했다’는 말 대신 검사 결과로 보여 줍니다. 실행하지 않은 검사는 ‘미검증’, 시연 결과는 ‘가상’이라고 적습니다.</p></div>
     </div>
-    <p class="fine center"><a href="#/live">실제 AI 실행 연결 계획 보기 →</a> · <a href="/">기존 AI 인력 관제(라이브) →</a></p>
+    <p class="fine center"><a href="#/bridge">지금 일하는 AI 실시간 보기 →</a> · <a href="#/live">실제 AI 실행 연결 계획 보기 →</a> · <a href="/">기존 AI 인력 관제(라이브) →</a></p>
   </section>`;
   // 작동 방식 스테퍼 — 3.6초마다 자동 넘김(멈춤 가능, 움직임 줄이기 설정이면 꺼짐)
   const STEP_ROLE = [["기획 담당 AI가 설명에서 필요한 기능과 완료 기준을 뽑습니다.", "정리된 기능 목록이 맞는지 확인하고 승인합니다.", "기능마다 ‘완료 기준’이 적힌 설계도"],
@@ -510,6 +513,61 @@ function live() {
     <div class="tbl" tabindex="0" role="region" aria-label="개발 순서"><table><thead><tr><th>단계</th><th>범위</th><th>상태</th></tr></thead><tbody>
       ${[["1차", "비개발자용 프로젝트 제작 화면 · 시연", "완료"], ["2차", "AI 요구사항 분석 · 작업 설계(실제 모델 호출)", "이번 판"], ["3차", "에이전트별 작업 실행 · 실시간 스트리밍 · AI 검토", "이번 판"], ["4차", "GitHub · 격리 실행 · 자동 테스트", "예정"], ["5차", "승인 · Preview · 배포", "예정"]].map(([a, b, c]) => `<tr><td>${a}</td><td>${esc(b)}</td><td>${c === "이번 판" ? chip(c, "accent") : c === "완료" ? chip(c, "good") : chip(c, "idle")}</td></tr>`).join("")}</tbody></table></div>
     <p class="fine">외부 사용자에게 Claude 기반 기능을 제공할 때는 개인 구독이 아니라 API 인증(Claude Agent SDK · API 키)을 써야 하며, 비용·권한·비밀정보 관리는 서버에서만 다룹니다.</p></div>`;
+}
+
+// ── AI 작업 브리지 — 연결한 AI 도구들의 작업을 실시간으로(보기 전용) ──
+let btimer = null;
+const clock = (t) => { const d = new Date(t), p = (n) => String(n).padStart(2, "0"); return `${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`; };
+const BUI = { open: new Set(), seen: 0, data: null, err: "" };
+async function bridgeFetch() {
+  try {
+    const r = await fetch("/api/bridge/feed/", { cache: "no-store", headers: { "x-studio-code": prefs.code || "" } });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) { BUI.err = r.status === 404 ? "이 주소에는 서버 함수가 없습니다(정적 사본)" : j.error || `HTTP ${r.status}`; BUI.data = j.bridge === false ? null : BUI.data; if (r.status === 401) BUI.data = null; }
+    else { BUI.err = ""; BUI.data = j; }
+  } catch { BUI.err = "서버에 연결할 수 없습니다"; }
+}
+async function bridge() {
+  document.title = "AI 작업 실시간 · Atelier AX";
+  const paint = () => { if (location.hash.split("/")[1] === "bridge") drawBridge(); };
+  if (!BUI.data && !BUI.err) app.innerHTML = `<div class="wrap wide proj-page"><p class="muted" style="padding:60px 0">불러오는 중…</p></div>`;
+  await bridgeFetch(); paint();
+  clearInterval(btimer); btimer = setInterval(async () => { if (document.hidden || location.hash.split("/")[1] !== "bridge" || /접근 코드/.test(BUI.err)) return; await bridgeFetch(); paint(); }, 3000);
+}
+function drawBridge() {
+  const d = BUI.data, needCode = /접근 코드/.test(BUI.err), off = !d && !needCode;
+  const ses = d?.sessions || [], evs = d?.events || [], today = evs.filter((e) => Date.now() - Date.parse(e.at) < 864e5);
+  const cnt = (k) => today.filter((e) => k.includes(e.kind)).length, liveN = ses.filter((x) => x.state === "live" || x.state === "wait").length;
+  const lanes = ses.map((x) => { const mine = evs.filter((e) => e.session === x.session), open = BUI.open.has(x.session), [st, sc] = BR.STATE[x.state];
+    return `<article class="lane card ${x.state}"><button class="lane-h" type="button" data-lane="${esc(x.session)}" aria-expanded="${open}">
+        <span class="src">${esc(BR.srcName(x.source))}</span><b>${esc(x.project || x.agent)}</b><span class="state ${sc}">${st}</span>
+        <span class="now-t">${esc(x.lastTitle)}</span><time>${clock(x.last)}</time><i aria-hidden="true">⌄</i></button>
+      ${BR.lane(x, mine, BUI.seen)}
+      <div class="fold ${open ? "open" : ""}"><div><ol class="evlist">${mine.slice(-40).reverse().map((e) => { const [lb, col] = BR.KIND[e.kind] || BR.KIND.note;
+        return `<li class="${e.kind}"><time>${clock(e.at)}</time><span class="kd ${col}">${lb}</span><span>${esc(e.title)}${e.detail ? `<small>${esc(e.detail)}</small>` : ""}</span></li>`; }).join("")}</ol></div></div></article>`; }).join("");
+  const host = location.origin;
+  app.innerHTML = `<div class="wrap wide proj-page bridge"><nav class="crumb" aria-label="위치"><a href="#/">프로젝트 스튜디오</a> <span aria-hidden="true">›</span> AI 작업 실시간</nav>
+    <header class="ph"><div><h1>지금 일하는 AI</h1><p class="muted">연결한 AI 도구가 보내는 작업 기록을 그대로 보여 줍니다 · 보기 전용(원격 명령 없음) · 최근 24시간</p></div>
+      <div class="ctl"><span class="lstate ${d ? "on" : ""}">${d ? "연결됨 · 3초마다 갱신" : esc(BUI.err || "확인 중…")}</span></div></header>
+    ${needCode ? `<form class="card codebox" id="bcode"><label for="bc"><b>접근 코드</b><span>작업 기록에는 파일 이름·명령이 들어 있어 코드가 있어야 볼 수 있습니다.</span></label><input id="bc" type="password" autocomplete="off" value=""><button class="btn primary">보기</button></form>` : ""}
+    ${d ? `<div class="bhud"><div><span>작업 중 세션</span><b>${liveN}</b></div><div><span>오늘 기록</span><b>${today.length}</b></div><div><span>파일 수정</span><b>${cnt(["edit", "output"])}</b></div><div><span>명령·테스트</span><b>${cnt(["run", "test"])}</b></div><div class="${cnt(["fail"]) ? "bad" : ""}"><span>실패</span><b>${cnt(["fail"])}</b></div></div>
+      <ul class="key bkey" aria-label="범례">${[["edit", "수정·산출물"], ["run", "명령·하위 에이전트"], ["test", "테스트"], ["read", "읽기·찾기·웹"], ["prompt", "지시·시작"], ["done", "완료"], ["fail", "실패"]].map(([k, t]) => `<li><svg viewBox="-9 -9 18 18" class="lane-svg" aria-hidden="true"><g class="ev ${k} ${BR.KIND[k][1]}">${BR.shape(k)}</g></svg>${t}</li>`).join("")}</ul>
+      <div class="lanes">${lanes || `<div class="card empty"><b>아직 받은 기록이 없습니다.</b><p>아래 연결 방법으로 AI 도구를 이으면, 작업할 때마다 여기에 레인이 생깁니다.</p></div>`}</div>` : ""}
+    <details class="card setup" id="setup" ${BUI.setup ?? !ses.length ? "open" : ""}><summary>AI 도구 연결하기</summary>
+      ${off ? `<p class="explain"><b>서버 준비 필요</b> — Vercel 환경변수 <code>SUPABASE_URL</code> · <code>SUPABASE_SERVICE_ROLE_KEY</code> · <code>BRIDGE_TOKEN</code> · <code>STUDIO_ACCESS_CODE</code> 를 설정해야 켜집니다. 지금 상태: ${esc(BUI.err)}</p>` : ""}
+      <h3 class="h4">Claude Code</h3><p class="fine">저장소의 <code>connectors/claude-code/atelier-hook.mjs</code> 를 내려받아 두고, 환경변수 <code>ATELIER_URL=${esc(host)}</code> · <code>ATELIER_BRIDGE_TOKEN</code> 을 설정한 뒤 <code>~/.claude/settings.json</code> 에 훅을 추가합니다. 지시 문장은 기본으로 보내지 않습니다(<code>ATELIER_SEND_PROMPTS=1</code> 일 때만).</p>
+      <pre class="aout">${esc(JSON.stringify({ hooks: Object.fromEntries(["SessionStart", "UserPromptSubmit", "PostToolUse", "PostToolUseFailure", "Notification", "Stop", "SessionEnd"].map((h) => [h, [{ hooks: [{ type: "command", command: "node /경로/atelier-hook.mjs", timeout: 5 }] }]])) }, null, 2))}</pre>
+      <h3 class="h4">그 밖의 AI 도구 (ChatGPT·Gemini 스크립트, Make, Cursor 등)</h3><p class="fine">작업할 때마다 아래 형식으로 POST 하면 됩니다. <code>kind</code>: session · prompt · read · search · web · edit · run · test · tool · agent · output · wait · done · fail · note</p>
+      <pre class="aout">curl -X POST ${esc(host)}/api/bridge/events/ \
+  -H "Authorization: Bearer $ATELIER_BRIDGE_TOKEN" -H "content-type: application/json" \
+  -d '{"session":"작업-1","source":"gemini","agent":"Gemini","project":"리포트","kind":"output","title":"요약 초안 작성"}'</pre>
+      <p class="fine">보내는 내용 중 API 키·토큰처럼 보이는 문자열은 저장 전에 가립니다. 그래도 비밀값은 보내지 마세요.</p></details></div>`;
+  BUI.seen = evs.at(-1)?.id || BUI.seen;
+  $$(".lane-scroll").forEach((x) => (x.scrollLeft = x.scrollWidth));
+  $$("[data-lane]").forEach((b) => (b.onclick = () => { const k = b.dataset.lane; BUI.open.has(k) ? BUI.open.delete(k) : BUI.open.add(k); b.setAttribute("aria-expanded", String(BUI.open.has(k))); b.parentElement.querySelector(".fold").classList.toggle("open"); }));
+  $("#bcode")?.addEventListener("submit", async (e) => { e.preventDefault(); prefs.code = $("#bc").value.trim(); savePrefs(); await bridgeFetch(); drawBridge(); });
+  $("#setup")?.addEventListener("toggle", (e) => (BUI.setup = e.target.open));
+  if (needCode) $("#bc")?.focus();
 }
 
 // ── 키보드 단축키 ──

@@ -27,6 +27,14 @@ AI 인력 운영 관제 + **프로젝트 스튜디오(2.0, 공개 시연판)** �
 - 코드 실행 환경·GitHub·배포는 미연결 → 공개 단계는 ‘실행 안 함’.
 - 거절(refusal)은 서버 측 `fallbacks: "default"`(beta `server-side-fallback-2026-07-01`)로 대체 모델이 이어 받는다.
 
+## AI 작업 브리지 — 지금 일하는 AI 실시간 보기(`/studio/#/bridge`, 보기 전용)
+어떤 AI 도구든 작업할 때마다 이벤트를 보내면, 세션마다 한 줄 레인으로 모양·색만 보고 상황을 읽게 한다(수정 ■ · 명령 ● · 테스트 ◆ · 읽기 · · 실패 ✕ · 완료 ⚑).
+- 받기: `POST /api/bridge/events/` (`Authorization: Bearer BRIDGE_TOKEN`, 한 건 또는 50건 배열) · 보기: `GET /api/bridge/feed/` (`x-studio-code`), 화면은 3초마다 갱신.
+- 저장: Supabase 표 `atelier_events` — `supabase/atelier_bridge.sql` 로 만든다. RLS 켬·공개 정책 없음, 서버 함수만 service role 키로 접근.
+- 서버 환경변수: `SUPABASE_URL` · `SUPABASE_SERVICE_ROLE_KEY` · `BRIDGE_TOKEN` · `STUDIO_ACCESS_CODE`.
+- Claude Code 연결: `connectors/claude-code/atelier-hook.mjs` 를 훅으로 등록(설정 예시는 화면의 ‘AI 도구 연결하기’). 지시 문장은 `ATELIER_SEND_PROMPTS=1` 일 때만 보냄, 실패해도 Claude Code 를 막지 않음(2초 제한·조용히 종료).
+- 그 밖의 도구(Gemini·ChatGPT 스크립트, Make HTTP 모듈, Cursor 등): 같은 형식으로 POST. API 키·토큰 모양 문자열은 저장 전에 가린다.
+
 ## 정직성 규칙
 - 시연(DEMO): 설계도는 키워드 규칙 초안, 실행·검사는 이 브라우저 안 가상 기록(`demo:true`) — 화면에 ‘시연 · 가상’ 표기.
 - 실행하지 않은 검사는 **미검증**, 시연에서 공개 승인해도 배포는 **실행 안 함**. 실패는 숨기지 않고 수정·재검사로 남긴다.
