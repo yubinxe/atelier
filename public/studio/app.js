@@ -146,7 +146,7 @@ const EV = { pass: ["통과", "good"], fail: ["실패", "bad"], unverified: ["�
 
 // ── 홈: 프로젝트 시작 ──
 function home() {
-  document.title = "프로젝트 스튜디오 · Atelier AX";
+  document.title = "Studio Demo — Atelier AX";
   const cat = prefs.cat || "web", mode = prefs.mode === "live" && liveOk() ? "live" : "demo";
   app.innerHTML = `<section class="hero">
     <p class="eyebrow">프로젝트 스튜디오 ${chip("NEW", "accent")}</p>
