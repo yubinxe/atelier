@@ -24,6 +24,10 @@
         {
           "key": "X-Frame-Options",
           "value": "DENY"
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "camera=(), microphone=(), geolocation=()"
         }
       ]
     },
@@ -53,11 +57,46 @@
           "value": "no-store"
         }
       ]
+    },
+    {
+      "source": "/(studio|console|missions|approvals|agents|performance)/(.*)",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex"
+        }
+      ]
+    },
+    {
+      "source": "/assets/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=86400, stale-while-revalidate=604800"
+        }
+      ]
     }
   ],
   "functions": {
     "api/**/*.js": {
       "maxDuration": 60
     }
-  }
+  },
+  "redirects": [
+    {
+      "source": "/demo",
+      "destination": "/studio/",
+      "permanent": false
+    },
+    {
+      "source": "/lab/studio",
+      "destination": "/studio/",
+      "permanent": false
+    },
+    {
+      "source": "/ko",
+      "destination": "/",
+      "permanent": true
+    }
+  ]
 }

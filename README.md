@@ -1,5 +1,21 @@
 # Atelier AX
 
+**기업 공식 사이트**(`/`, 한·영) + **Studio Demo**(`/studio/`) — https://atelier-ax.vercel.app
+
+## 기업 사이트
+| 경로 | 내용 |
+|---|---|
+| `/` `/en/` | 홈 — 포지셔닝 · 문제 · 접근법 · 서비스 · 방법론 · 기술력(Studio 미리보기) · 산업 · 협업 절차 |
+| `/services/` | 서비스 4종(문제·작업·산출물·사례·시작 방법), 가격은 개별 제안 |
+| `/work/` | 작업 — 상태(공개·작동/시제품/기획/비공개)와 소유(회사/대표 개인) 구분 |
+| `/lab/` | Studio·모델하우스·초기판 콘솔 진입, 이벤트 브리지 구조도 |
+| `/about/` `/contact/` `/privacy/` | 회사 소개 · 상담 문의(`POST /api/contact`) · 개인정보처리방침 |
+| `/console/` | 초기판 운영 관제 콘솔(보존, noindex) — 기존 `/` 에 있던 화면 |
+| `/demo` `/lab/studio` | → `/studio/` 로 이동 |
+
+생성: `npm run build:site` (결과물 커밋, 빌드 단계 없음). 문의 저장 전 Supabase 에 `supabase/atelier_leads.sql` 적용 필요.
+
+
 AI 인력 운영 관제 + **프로젝트 스튜디오(2.0, 공개 시연판)** — https://atelier-ax.vercel.app
 
 ## 구성

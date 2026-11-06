@@ -479,3 +479,7 @@ ol.evlist { list-style: none; margin: 0; padding: 4px 18px 14px; display: grid; 
 @media (max-width: 680px) { .bridge .ph .toggle { align-self: flex-start; } .simclock { margin-left: 0; flex-basis: 100%; } .floorbox { padding: 0; } }
 @media (prefers-reduced-motion: reduce) { .fp, .fp .head, .fp .ini, .ticker li { transition: none !important; animation: none !important; } }
 .lane-h i.srcdot { color: #fff; } .lane-h i.srcdot.yellow { color: #3a2a00; }
+
+/* v8 — Atelier AX 브랜드 헤더 */
+.logo { color: #15171c; align-items: center; gap: 9px; } .logo span { font: 640 17px/1 var(--sans) !important; letter-spacing: -0.02em; color: #15171c; }
+.logo small { font: 500 11px var(--mono) !important; letter-spacing: .06em; color: #7a6234 !important; border-left: 1px solid var(--rule2); padding-left: 9px; }

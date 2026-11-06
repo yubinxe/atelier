@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /studio/
+Disallow: /console/
+
+Sitemap: https://atelier-ax.vercel.app/sitemap.xml

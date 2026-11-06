@@ -18,14 +18,7 @@ export function checkCode(req, env = process.env) {
   return d === 0;
 }
 
-// 인스턴스당 간이 속도 제한(분당). 인스턴스가 여러 개면 느슨해진다 — 비용 상한은 max_tokens·접근 코드가 맡는다.
-const hits = new Map();
-export function rateLimited(key, perMin = 30, now = Date.now()) {
-  const w = (hits.get(key) || []).filter((t) => now - t < 60e3); w.push(now); hits.set(key, w);
-  return w.length > perMin;
-}
-
-export const json = (body, status = 200) => new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" } });
+export { json, rateLimited } from "./http.js";
 const clip = (s, n) => String(s ?? "").replace(/\s+/g, " ").trim().slice(0, n);
 
 // ── 설계도 ──

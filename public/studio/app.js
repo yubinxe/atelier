@@ -127,6 +127,7 @@ function route() {
   else if (a === "bridge") bridge();
   else home();
   $("#expert")?.setAttribute("aria-pressed", String(!!prefs.expert));
+  $$(".mnav a").forEach((x) => x.toggleAttribute("aria-current", x.getAttribute("href") === (a === "bridge" ? "/studio/#/bridge" : "/studio/")));
 }
 let lastProj = null;
 addEventListener("hashchange", () => {
@@ -183,7 +184,7 @@ function home() {
       <div class="card"><b>통제할 수 있게</b><p>범위·설계·공개는 당신의 승인 없이 넘어가지 않습니다. 언제든 멈추고, 반려하면 그 단계부터 다시 합니다.</p></div>
       <div class="card"><b>검증할 수 있게</b><p>‘완성했다’는 말 대신 검사 결과로 보여 줍니다. 실행하지 않은 검사는 ‘미검증’, 시연 결과는 ‘가상’이라고 적습니다.</p></div>
     </div>
-    <p class="fine center"><a href="#/bridge">AI 작업 모델하우스(시뮬레이션) →</a> · <a href="#/live">실제 AI 실행 연결 계획 보기 →</a> · <a href="/">기존 AI 인력 관제(라이브) →</a></p>
+    <p class="fine center"><a href="#/bridge">AI 작업 모델하우스(시뮬레이션) →</a> · <a href="#/live">실제 AI 실행 연결 계획 보기 →</a> · <a href="/console/">운영 관제 콘솔 초기판 →</a></p>
   </section>`;
   // 작동 방식 스테퍼 — 3.6초마다 자동 넘김(멈춤 가능, 움직임 줄이기 설정이면 꺼짐)
   const STEP_ROLE = [["기획 담당 AI가 설명에서 필요한 기능과 완료 기준을 뽑습니다.", "정리된 기능 목록이 맞는지 확인하고 승인합니다.", "기능마다 ‘완료 기준’이 적힌 설계도"],
