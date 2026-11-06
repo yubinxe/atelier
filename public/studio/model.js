@@ -161,13 +161,20 @@ export function planTasks(bp) {
   return T;
 }
 
-export function createProject(text, category, now = Date.now(), mode = "demo") {
+// mode "live": plan = 실제 AI 가 만든 설계도({title, goal, features, decisions}). 스킬 배정은 키워드 규칙을 그대로 쓴다.
+export function createProject(text, category, now = Date.now(), mode = "demo", plan = null) {
   const bp = blueprint(text, category);
+  if (mode === "live" && plan) {
+    bp.title = plan.title || bp.title; bp.goal = plan.goal || bp.goal;
+    bp.features = plan.features.map((f, i) => ({ id: "f" + (i + 1), name: f.name, why: f.why, accept: f.accept, must: !!f.must }));
+    bp.decisions = plan.decisions.map((d) => ({ ...d, choice: null }));
+    bp.confidence = "AI 설계도";
+  }
   const id = "p" + uid(text + now) + (now % 1000);
   const tasks = planTasks(bp);
   const evidence = tasks.filter((t) => t.check).map((t) => ({ id: "e-" + t.check, task: t.id, name: t.title, status: "unverified", runs: [] }));
   evidence.push({ id: "e-deploy", task: null, name: "운영환경 배포", status: "unverified", runs: [] });
-  return { id, v: 1, mode, created: now, updated: now, status: "active", stage: 0, ...bp, tasks, runs: [], approvals: [], evidence, history: [{ at: now, kind: "create", text: `프로젝트 생성 — ${CATEGORIES[bp.category].name}`, demo: mode === "demo" }] };
+  return { id, v: 1, mode, created: now, updated: now, status: "active", stage: 0, ...bp, tasks, runs: [], approvals: [], evidence, history: [{ at: now, kind: "create", text: `프로젝트 생성 — ${CATEGORIES[bp.category].name}${mode === "live" ? " · 실제 AI 설계도" : ""}`, demo: mode === "demo" }] };
 }
 
 // ── 승인(Approval) 게이트 ──
@@ -181,14 +188,21 @@ const GATE_TEXT = {
   launch: ["공개 승인", "승인하면 서비스를 공개합니다."],
 };
 
-// 다음 한 걸음 — 결과: { p, did, blocked }
-export function step(p0, now = Date.now()) {
+// 다음 한 걸음 — 결과: { p, did, blocked } · 실제 실행에서 결과 없이 부르면 { p, needs: 작업 } (화면이 AI 를 부른 뒤 result 와 함께 다시 부른다)
+// result: { outcome: "done"|"pass"|"fail"|"unknown"|"error", summary, note, output, start, end, model, usage }
+export function step(p0, now = Date.now(), result = null) {
   const p = structuredClone(p0);
   if (p.status === "paused") return { p, blocked: "중단된 프로젝트입니다. ‘다시 시작’을 누르면 이어서 진행합니다." };
   if (p.status === "done" || p.status === "stopped") return { p, blocked: "이미 끝난 프로젝트입니다." };
   const pend = pendingApproval(p); if (pend) return { p, blocked: `‘${pend.title}’ 결정을 기다리고 있습니다.` };
   const todo = stageTasks(p).find((t) => t.status === "todo");
-  if (todo) { runTask(p, todo, now); p.updated = now; return { p, did: todo.title }; }
+  if (todo) {
+    if (p.mode === "live") {
+      if (!result) return { p, needs: todo };
+      if (result.outcome === "error") { log(p, now, "error", `${AGENTS[todo.agent].name} · ${todo.title} — 실행 실패: ${result.note || "오류"} (완료로 적지 않음)`); p.updated = now; return { p, blocked: result.note || "실행 실패" }; }
+    }
+    runTask(p, todo, now, result); p.updated = now; return { p, did: todo.title };
+  }
   // 단계의 작업이 모두 끝남 → 게이트가 있으면 승인 요청, 없으면 다음 단계
   const g = gateOf(p);
   if (g && !p.approvals.some((a) => a.gate === g && a.status === "approved")) {
@@ -200,17 +214,18 @@ export function step(p0, now = Date.now()) {
   return nextStage(p, now);
 }
 function nextStage(p, now) {
-  if (p.stage >= STAGES.length - 1) { p.status = "done"; log(p, now, "done", p.mode === "demo" ? "시연 완료 — 실제로 공개된 서비스는 없습니다" : "프로젝트 완료"); p.updated = now; return { p, did: "완료" }; }
+  if (p.stage >= STAGES.length - 1) { p.status = "done"; log(p, now, "done", p.mode === "demo" ? "시연 완료 — 실제로 공개된 서비스는 없습니다" : "AI 작업 완료 — 배포는 연결되지 않아 공개된 서비스는 없습니다"); p.updated = now; return { p, did: "완료" }; }
   p.stage += 1; log(p, now, "stage", `${STAGES[p.stage].n} ${STAGES[p.stage].name} 시작`); p.updated = now;
   return { p, did: `${STAGES[p.stage].name} 시작` };
 }
 function log(p, at, kind, text, extra = {}) { p.history.push({ at, kind, text, demo: p.mode === "demo", ...extra }); }
 
 // 작업 실행 기록(Run). 시연에서는 결과가 '가상'이며, 검사 실패→수정→재검사 흐름을 한 번 보여 준다.
-function runTask(p, t, now) {
+function runTask(p, t, now, res) {
   const demo = p.mode === "demo", runId = "r" + (p.runs.length + 1);
   const run = { id: runId, task: t.id, agent: t.agent, skills: t.skills, start: now, end: now + 1000 * (20 + (p.runs.length * 37) % 90), demo, outcome: "done", note: "" };
-  if (t.check) {
+  if (res) liveRun(p, t, run, res, now);
+  else if (t.check) {
     const ev = p.evidence.find((e) => e.id === "e-" + t.check);
     const firstMobile = t.check === "mobile" && !ev.runs.length;
     run.outcome = firstMobile ? "fail" : "pass";
@@ -223,7 +238,24 @@ function runTask(p, t, now) {
     }
   } else run.note = t.accept ? `완료 기준: ${t.accept}` : "";
   t.status = "done"; t.run = runId; p.runs.push(run);
-  log(p, now, "run", `${AGENTS[t.agent].name} · ${t.title}${run.outcome === "fail" ? " — 실패" : run.outcome === "pass" ? " — 통과" : " — 완료"}`, { agent: t.agent, run: runId });
+  log(p, now, "run", `${AGENTS[t.agent].name} · ${t.title}${run.outcome === "fail" ? " — 실패" : run.outcome === "pass" ? " — 통과" : run.outcome === "unknown" ? " — 판정 없음(미검증)" : " — 완료"}`, { agent: t.agent, run: runId });
+}
+
+// 실제 실행 결과 기록. 검사는 'AI 검토'(코드 실행 아님)로 남기고, 판정이 없으면 미검증. 실패는 수정·재검사를 최대 2회 붙인다.
+const clipOut = (s) => String(s || "").slice(0, 4000);
+function liveRun(p, t, run, res, now) {
+  Object.assign(run, { start: res.start || now, end: res.end || now, outcome: res.outcome === "unknown" ? "unknown" : res.outcome || "done", note: res.note || "", summary: res.summary || "", output: clipOut(res.output), model: res.model || "", usage: res.usage || null, review: !!t.check });
+  if (!t.check) { if (!run.note) run.note = t.accept ? `완료 기준: ${t.accept}` : ""; return; }
+  const ev = p.evidence.find((e) => e.id === "e-" + t.check);
+  if (!ev) return;
+  ev.kind = "ai-review";
+  ev.runs.push({ run: run.id, at: run.end, result: run.outcome === "unknown" ? "unknown" : run.outcome, demo: false, review: true });
+  ev.status = run.outcome === "pass" ? "pass" : run.outcome === "fail" ? "fail" : "unverified";
+  const fixes = p.tasks.filter((x) => x.fix && x.fixFor === t.check).length;
+  if (run.outcome === "fail" && fixes < 2) {
+    p.tasks.push({ id: "t" + (p.tasks.length + 1), stage: "verify", title: `${t.title.replace(/ (재)?검사$/, "")} 수정`, agent: "developer", skills: ["feature-impl"], accept: run.note || t.accept, status: "todo", fix: true, fixFor: t.check });
+    p.tasks.push({ id: "t" + (p.tasks.length + 1), stage: "verify", title: `${t.title.replace(/ (재)?검사$/, "")} 재검사`, agent: "qa", skills: t.skills, accept: t.accept, status: "todo", check: t.check });
+  }
 }
 
 // 사용자 결정 — 설계 결정 게이트는 모든 선택지를 골라야 승인 가능
@@ -237,7 +269,7 @@ export function approve(p0, approvalId, now = Date.now()) {
   const p = structuredClone(p0), a = p.approvals.find((x) => x.id === approvalId);
   if (!a || a.status !== "pending" || !canApprove(p, a)) return p;
   a.status = "approved"; a.at = now; log(p, now, "approve", `승인 — ${a.title}`);
-  if (a.gate === "launch") { const ev = p.evidence.find((e) => e.id === "e-deploy"); if (p.mode === "demo") { ev.status = "skipped"; ev.note = "시연에서는 실제 공개를 실행하지 않습니다"; } }
+  if (a.gate === "launch") { const ev = p.evidence.find((e) => e.id === "e-deploy"); ev.status = "skipped"; ev.note = p.mode === "demo" ? "시연에서는 실제 공개를 실행하지 않습니다" : "배포 서비스가 연결되지 않아 공개를 실행하지 않았습니다"; }
   p.updated = now; return p;
 }
 // 반려 — 해당 단계로 되돌려 다시 작업하게 한다
@@ -266,7 +298,7 @@ export function summary(p) {
     why: doing ? (doing.accept ? `완료 기준: ${doing.accept}` : st.why) : st.why,
     decide: pend ? `${pend.title} — ${pend.text}` : p.decisions.some((d) => !d.choice) && p.stage <= 1 ? "곧 설계 결정이 필요합니다." : "지금 결정할 것은 없습니다.",
     completed: `작업 ${done}/${tasks.length}개 완료`,
-    proof: `검사 통과 ${pass} · 실패 ${fail} · 미검증 ${unv}${p.mode === "demo" ? " — 시연 결과(가상)" : ""}`,
+    proof: `검사 통과 ${pass} · 실패 ${fail} · 미검증 ${unv}${p.mode === "demo" ? " — 시연 결과(가상)" : " — AI 검토(코드 실행 아님)"}`,
   };
 }
 // 스킬 → 쓰는 에이전트(다대다 관계)
@@ -274,6 +306,36 @@ export function skillUsage(p) {
   const m = {};
   for (const t of p.tasks) for (const s of t.skills) { (m[s] ||= { agents: new Set(), tasks: 0, done: 0 }); m[s].agents.add(t.agent); m[s].tasks++; if (t.status === "done") m[s].done++; }
   return Object.fromEntries(Object.entries(m).map(([k, v]) => [k, { ...v, agents: [...v.agents] }]));
+}
+// ── 보드(게임 화면)용 구조 — 단계 = 구역, 작업 = 칸, 승인 = 관문 ──
+export function board(p) {
+  const next = p.status === "active" && !pendingApproval(p) ? stageTasks(p).find((t) => t.status === "todo") : null;
+  return STAGES.map((s, i) => ({
+    i, id: s.id, n: s.n, name: s.name, state: i < p.stage || p.status === "done" ? "done" : i === p.stage ? "now" : "next",
+    tasks: p.tasks.filter((t) => t.stage === s.id).map((t) => ({ id: t.id, title: t.title, agent: t.agent, status: t.status, now: t === next, fix: !!t.fix, check: !!t.check, outcome: t.run ? p.runs.find((r) => r.id === t.run)?.outcome || "done" : null })),
+    gate: s.gate ? { gate: s.gate, state: p.approvals.some((a) => a.gate === s.gate && a.status === "approved") ? "open" : p.approvals.some((a) => a.gate === s.gate && a.status === "pending") ? "wait" : "closed" } : null,
+  }));
+}
+// 경험치·레벨·업적 — 기록에서만 계산(꾸며 낸 점수 없음). 작업 10 · 검사 통과 15 · 실패 뒤 복구 20 · 승인 25
+export const LEVEL_XP = 40;
+export function game(p) {
+  const agents = Object.fromEntries(Object.keys(AGENTS).map((k) => [k, { xp: 0 }]));
+  for (const r of p.runs) agents[r.agent].xp += r.outcome === "pass" ? 15 : r.outcome === "fail" || r.outcome === "unknown" ? 5 : 10;
+  const recovered = p.evidence.filter((e) => e.runs.some((r) => r.result === "fail") && e.status === "pass");
+  agents.developer.xp += 20 * recovered.length;
+  const approved = p.approvals.filter((a) => a.status === "approved");
+  for (const k in agents) { const a = agents[k]; a.lv = 1 + Math.floor(a.xp / LEVEL_XP); a.into = a.xp % LEVEL_XP; }
+  const xp = Object.values(agents).reduce((n, a) => n + a.xp, 0) + 25 * approved.length;
+  const checks = p.evidence.filter((e) => e.id !== "e-deploy");
+  const B = [
+    ["first", "첫 실행", p.runs.length > 0],
+    ["scope", "범위 확정", approved.some((a) => a.gate === "scope")],
+    ["design", "설계 확정", approved.some((a) => a.gate === "decisions")],
+    ["recover", "실패 복구", recovered.length > 0],
+    ["clean", "검사 전부 통과", checks.length > 0 && checks.every((e) => e.status === "pass")],
+    ["finish", "완주", p.status === "done"],
+  ];
+  return { xp, lv: 1 + Math.floor(xp / (LEVEL_XP * 3)), into: xp % (LEVEL_XP * 3), per: LEVEL_XP * 3, agents, gates: approved.length, badges: B.map(([id, name, got]) => ({ id, name, got })) };
 }
 export const isValidProject = (p) => !!(p && p.v === 1 && p.id && Array.isArray(p.tasks) && Array.isArray(p.evidence) && STAGES[p.stage]);
 export { slug };

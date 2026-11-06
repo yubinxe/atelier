@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en" class="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Atelier Lab — Atelier AX</title>
+<meta name="description" content="Atelier AX's lab: an AI agent orchestration demo, a live work simulation and the architecture of our event bridge.">
+<link rel="canonical" href="https://atelier-ax.vercel.app/en/lab/">
+<link rel="alternate" hreflang="ko" href="https://atelier-ax.vercel.app/lab/">
+<link rel="alternate" hreflang="en" href="https://atelier-ax.vercel.app/en/lab/">
+<link rel="alternate" hreflang="x-default" href="https://atelier-ax.vercel.app/lab/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Atelier AX">
+<meta property="og:title" content="Atelier Lab — Atelier AX">
+<meta property="og:description" content="Atelier AX's lab: an AI agent orchestration demo, a live work simulation and the architecture of our event bridge.">
+<meta property="og:url" content="https://atelier-ax.vercel.app/en/lab/">
+<meta property="og:image" content="https://atelier-ax.vercel.app/assets/og.png">
+<meta property="og:locale" content="en_US">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#f4f1ea">
+<link rel="icon" href="/assets/mark.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/site.css?v=2">
+
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top" id="top"><div class="wrap">
+  <a class="brand" href="/en/" aria-label="Atelier AX"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="1" y="1" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M6 22V11a6 6 0 0 1 12 0v11" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M12 5v17" stroke="#9c7e48" stroke-width="1.4"/></svg><span>Atelier AX</span></a>
+  <nav class="nav" aria-label="Main"><a href="/en/services/">Services</a><a href="/en/work/">Work</a><a href="/en/lab/" aria-current="page">Lab</a><a href="/en/about/">About</a><a class="lang" href="/lab/" hreflang="ko" lang="ko" aria-label="한국어">KO</a><a class="btn sm solid" href="/en/contact/">Get in touch</a></nav>
+  <details class="menu"><summary aria-label="Menu"><i aria-hidden="true"></i>Menu</summary><div class="sheet"><a href="/en/services/">Services<span>01</span></a><a href="/en/work/">Work<span>02</span></a><a href="/en/lab/">Lab<span>03</span></a><a href="/en/about/">About<span>04</span></a><a href="/lab/" hreflang="ko" lang="ko">한국어<span>KO</span></a><a class="btn solid" href="/en/contact/">Get in touch</a></div></details>
+</div></header>
+<main id="main" tabindex="-1">
+<section class="page-head"><div class="wrap"><p class="eyebrow">Atelier Lab</p><h1 class="display">A lab you can see, operate and inspect.</h1>
+  <p class="lede">Everything in the lab runs on simulated data, inside your browser, without real AI keys or client data — and is labelled as a demo on screen.</p></div></section>
+<section class="sec flush"><div class="wrap"><ul class="lab-modes"><li><a href="/studio/"><h2 class="h3">Project Studio</h2><p class="body">Describe an idea and an AI team divides it into six stages. A person decides at each approval gate, and every check is recorded.</p><span class="status live">Demo</span></a></li><li><a href="/studio/#/bridge"><h2 class="h3">AI Work Model House</h2><p class="body">Watch several AI agents carry out their own work on a live floor plan, including failures and recovery.</p><span class="status live">Simulation</span></a></li><li><a href="/console/"><h2 class="h3">Operations Console · first edition</h2><p class="body">The first monitoring view of AI workers' tasks, approvals and performance, kept for the record.</p><span class="status proto">Archived</span></a></li></ul></div></section>
+<section class="sec paper" aria-labelledby="h-arch"><div class="wrap">
+  <div class="sec-head"><div><p class="eyebrow">Architecture</p><h2 class="h2" id="h-arch">A boundary between AI execution and human approval</h2></div>
+    <p class="body">Work records sent by AI tools are normalised and stored on the server, and only people with an access code can view them. The public demo uses separate, simulated scripts.</p></div>
+  <div class="arch" role="img" aria-label="Diagram: AI tools send work records to the event bridge; stored records are viewed only by authorised users. The public demo runs separately on simulated scripts in the browser.">
+  <svg viewBox="0 0 960 300" aria-hidden="true"><defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="currentColor"/></marker></defs>
+    <rect class="bx" x="10" y="40" width="180" height="96"/><text x="28" y="72">AI tools</text><text class="sm" x="28" y="96">Claude Code · n8n</text><text class="sm" x="28" y="114">a record per action</text>
+    <rect class="bx alt" x="260" y="40" width="200" height="96"/><text class="inv" x="278" y="72">Event bridge</text><text class="inv sm" x="278" y="96">POST /api/bridge/events</text><text class="inv sm" x="278" y="114">token check · redaction</text>
+    <rect class="bx" x="530" y="40" width="170" height="96"/><text x="548" y="72">Storage</text><text class="sm" x="548" y="96">Supabase · RLS</text><text class="sm" x="548" y="114">no public access</text>
+    <rect class="bx" x="770" y="40" width="180" height="96"/><text x="788" y="72">Monitoring view</text><text class="sm" x="788" y="96">GET /api/bridge/feed</text><text class="sm" x="788" y="114">access code required</text>
+    <path class="ln" d="M190 88H254"/><path class="ln" d="M460 88H524"/><path class="ln" d="M700 88H764"/>
+    <rect class="gate" x="852" y="152" width="10" height="10" transform="rotate(45 857 157)"/><text x="878" y="162">Human approval</text>
+    <path class="ln dash" d="M860 140V150"/>
+    <rect class="bx soft" x="10" y="200" width="940" height="76"/><text x="28" y="232">Public demo (Studio Demo)</text><text class="sm" x="28" y="256">simulated scripts in the browser · separate from servers, keys and real records · labelled as simulated</text>
+  </svg></div>
+</div></section>
+</main>
+<footer class="foot"><div class="wrap">
+  <div class="grid">
+    <div class="who"><a class="brand" href="/en/"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="1" y="1" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M6 22V11a6 6 0 0 1 12 0v11" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M12 5v17" stroke="#9c7e48" stroke-width="1.4"/></svg><span>Atelier AX</span></a><p>An AI transformation studio that studies how work is done and engineers working systems from AI agents, automation and software.</p></div>
+    <nav aria-label="Company"><b>Company</b><a href="/en/about/">About</a><a href="/en/contact/">Get in touch</a></nav>
+    <nav aria-label="Explore"><b>Explore</b><a href="/en/services/">Services</a><a href="/en/work/">Work</a><a href="/en/lab/">Lab</a><a href="/studio/">Studio Demo</a></nav>
+    <nav aria-label="Legal"><b>Legal</b><a href="/en/privacy/">Privacy policy</a><a href="/lab/" hreflang="ko" lang="ko">한국어</a></nav>
+  </div>
+  <div class="legal"><span>Atelier AX · Sole proprietorship · Seoul, Korea</span><span>© 2026 Atelier AX</span></div>
+</div></footer>
+<script src="/assets/site.js?v=2" defer></script>
+</body>
+</html>

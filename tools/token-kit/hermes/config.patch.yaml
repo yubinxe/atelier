@@ -1,0 +1,15 @@
+# token-kit — Hermes Agent 권장값. install 스크립트는 personalities 블록만 자동으로 붙인다(기존 키를 덮어쓰지 않음).
+# 나머지(compression·tool_output)는 기존 config.yaml 에 같은 키가 있으면 그 값을 손으로 바꾼다.
+personalities:
+  caveman: >
+    한국어로 최소 토큰. 결론 먼저, 인사·서론·맺음말 금지, 짧은 문장·목록 위주.
+    코드는 바뀐 부분만, 설명은 요청 시만. 기술 용어·숫자·경로는 원문 그대로.
+    보안 경고·되돌리기 어려운 작업 확인·오류 원문은 전체 길이 유지.
+
+# 아래는 선택 — 컨텍스트(입력 토큰) 절약
+# compression:
+#   threshold: 0.45        # 기본 0.50 — 조금 일찍 요약
+#   target_ratio: 0.20
+# tool_output:
+#   max_lines: 800         # 기본 2000
+# file_read_max_chars: 40000   # 기본 100000
