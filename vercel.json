@@ -84,7 +84,17 @@
   },
   "redirects": [
     {
+      "source": "/demo/",
+      "destination": "/studio/",
+      "permanent": false
+    },
+    {
       "source": "/demo",
+      "destination": "/studio/",
+      "permanent": false
+    },
+    {
+      "source": "/lab/studio/",
       "destination": "/studio/",
       "permanent": false
     },
@@ -94,7 +104,7 @@
       "permanent": false
     },
     {
-      "source": "/ko",
+      "source": "/ko/",
       "destination": "/",
       "permanent": true
     }
