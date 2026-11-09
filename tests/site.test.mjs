@@ -17,7 +17,7 @@ test("기업 사이트: 모든 페이지에 lang·title·설명·h1 하나·cano
     assert.match(h, /rel="canonical"/, f); assert.match(h, /hreflang="ko"/, f); assert.match(h, /hreflang="en"/, f);
     assert.doesNotMatch(h, /undefined|\[object Object\]|NaN/, f);
   }
-  assert.ok(Object.keys(pages).length === PAGES.length);
+  assert.ok(Object.keys(pages).length === PAGES.length + 1); // + 인사이트(글이 없으면 noindex)
 });
 
 test("기업 사이트: 내부 링크가 모두 실제 파일로 이어진다", () => {
@@ -61,4 +61,13 @@ test("상담 문의: 검증·스팸 차단·중복 방지", async () => {
   assert.deepEqual(await store(v.row, {}, f), { saved: true, duplicate: true });
   assert.match(calls[0][0], /\/rest\/v1\/atelier_leads$/); assert.equal(calls[0][1].headers.prefer, "return=minimal");
   const miss = await store(v.row, {}, async () => new Response('{"code":"PGRST205"}', { status: 404 })); assert.equal(miss.saved, false); assert.equal(miss.missingTable, true);
+});
+
+test("v2: 홈 구성(히어로 흐름도·비교·방법론·실제 시연), 인사이트는 글이 없으면 noindex·사이트맵 제외", () => {
+  const h = readFileSync(P("index.html"), "utf8");
+  for (const hook of ["data-flow", "data-ba", "data-method", "data-demo", "업무를 다시 설계하고", "기획한 사람이 만들고"]) assert.ok(h.includes(hook), hook);
+  assert.match(h, /시뮬레이션 · 가상 데이터/);
+  assert.match(readFileSync(P("insights/index.html"), "utf8"), /noindex/);
+  assert.doesNotMatch(readFileSync(P("sitemap.xml"), "utf8"), /insights/);
+  assert.match(readFileSync(P("about/index.html"), "utf8"), /경국은 아뜰리에 AX의 고객이나 협력 기관이 아닙니다/);
 });
