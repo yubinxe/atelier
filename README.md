@@ -13,7 +13,7 @@
 | `/console/` | 초기판 운영 관제 콘솔(보존, noindex) — 기존 `/` 에 있던 화면 |
 | `/demo` `/lab/studio` | → `/studio/` 로 이동 |
 
-생성: `npm run build:site` (결과물 커밋, 빌드 단계 없음). 문의 저장 전 Supabase 에 `supabase/atelier_leads.sql` 적용 필요.
+생성: `npm run build:site` (결과물 커밋, 빌드 단계 없음). 소스 = `site/content.mjs`(문안) · `site/build.mjs`(페이지) · `site/style.css`(디자인, 폰트와 합쳐 `public/assets/site.css`) · `public/assets/site.js`(인터랙션: 히어로 흐름도·비교 탭·방법론 스크롤·Studio 엔진 실시간 시연). `/insights/` 는 `POSTS` 가 비어 있으면 noindex·사이트맵 제외. 문의 저장 전 Supabase 에 `supabase/atelier_leads.sql` 적용 필요.
 
 
 AI 인력 운영 관제 + **프로젝트 스튜디오(2.0, 공개 시연판)** — https://atelier-ax.vercel.app

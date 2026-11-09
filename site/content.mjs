@@ -83,3 +83,75 @@ export const WORK = [
   { id: "legal", status: "conf", ko: { name: "법조시장 한눈에", kind: "비공개 작업", desc: "법조 시장 정보를 한 화면에 모으는 대시보드입니다. 공개 범위가 확인되지 않아 화면과 세부 내용은 싣지 않습니다.", stack: "", status: "비공개" },
     en: { name: "Legal Market at a Glance", kind: "Confidential work", desc: "A dashboard that brings legal-market information onto one screen. Screens and details are withheld because the scope of disclosure has not been confirmed.", stack: "", status: "Confidential" } },
 ];
+
+// ── v2 홈 구성 요소 ──
+// 업무의 흔한 비효율 — 아이콘은 build.mjs 의 ICON 키
+export const PAINS = [
+  { icon: "gather", k: ["반복되는 자료 취합", "매주 같은 자료를 여러 곳에 요청하고, 받은 파일을 하나로 붙입니다."], e: ["Repetitive data gathering", "The same figures are requested from several places every week and pasted together by hand."] },
+  { icon: "doc", k: ["손으로 하는 문서 정리", "받은 문서를 읽고, 분류하고, 다른 양식에 옮겨 적는 일이 사람 몫입니다."], e: ["Manual document handling", "Reading, classifying and re-keying incoming documents is still someone's job."] },
+  { icon: "split", k: ["끊긴 정보 흐름", "부서와 시스템 사이의 정보가 메일과 메신저로만 오가고, 최신본이 어디 있는지 모릅니다."], e: ["Broken information flow", "Information moves between teams and systems only by email and chat, and no one is sure which version is current."] },
+  { icon: "check", k: ["검증하기 어려운 AI 결과", "AI가 만든 결과가 맞는지, 누가 확인했는지 기록이 남지 않습니다."], e: ["AI output no one can verify", "There is no record of whether an AI result was right or who checked it."] },
+  { icon: "gear", k: ["관리되지 않는 자동화", "한번 만든 자동화가 실패해도 모르고, 만든 사람이 없으면 고칠 수 없습니다."], e: ["Automation no one maintains", "When an automation fails no one notices, and without its author no one can fix it."] },
+];
+
+// 기존 방식 vs 재설계 — 예시 시나리오(실적 아님)
+export const BA = {
+  k: { title: "예시 · 주간 실적 보고", before: "지금의 방식", after: "재설계 후",
+    b: [["person", "자료 요청", "담당자가 지점마다 메일로 자료를 요청합니다."], ["person", "회신 대기", "답이 늦은 곳에 다시 연락합니다."], ["person", "복사·붙여넣기", "받은 엑셀을 하나의 표로 합칩니다."], ["person", "수치 확인", "빠진 값과 이상한 숫자를 눈으로 찾습니다."], ["person", "보고서 작성", "표를 보고 요약을 씁니다."], ["person", "메일 발송", "완성본을 정해진 사람에게 보냅니다."]],
+    a: [["auto", "자동 수집", "정해진 시각에 각 지점 자료를 모읍니다."], ["auto", "형식 통일", "양식을 맞추고 누락을 표시합니다."], ["ai", "AI 요약", "변동과 이상치를 정리한 초안을 씁니다."], ["gate", "담당자 승인", "사람은 판단이 필요한 부분만 확인합니다."], ["auto", "보고·발송", "승인된 보고서를 만들어 보냅니다."], ["auto", "기록·알림", "모든 실행을 남기고 실패하면 알립니다."]],
+    who: { person: "사람", ai: "AI", auto: "자동", gate: "사람 승인" },
+    sumB: [["사람이 하는 단계", "6"], ["실행 기록", "없음"]], sumA: [["사람이 하는 단계", "1 · 판단만"], ["실행 기록", "모든 단계"]],
+    note: "설명을 위한 예시입니다. 실제 설계는 업무와 기존 시스템에 따라 달라지며, 효과를 수치로 약속하지 않습니다." },
+  e: { title: "Example · weekly performance report", before: "Today", after: "Redesigned",
+    b: [["person", "Request data", "Someone emails every branch for figures."], ["person", "Chase replies", "Late replies get a second reminder."], ["person", "Copy & paste", "Spreadsheets are merged into one table."], ["person", "Check numbers", "Missing values and outliers are found by eye."], ["person", "Write report", "A summary is written from the table."], ["person", "Send", "The final version is emailed out."]],
+    a: [["auto", "Collect", "Branch data is gathered at a set time."], ["auto", "Normalise", "Formats are aligned and gaps flagged."], ["ai", "AI draft", "Changes and outliers are summarised in a draft."], ["gate", "Approve", "A person checks only what needs judgement."], ["auto", "Report & send", "The approved report is generated and sent."], ["auto", "Log & alert", "Every run is recorded; failures raise an alert."]],
+    who: { person: "Person", ai: "AI", auto: "Automated", gate: "Human approval" },
+    sumB: [["Steps done by people", "6"], ["Run history", "None"]], sumA: [["Steps done by people", "1 · judgement only"], ["Run history", "Every step"]],
+    note: "An illustrative example. Real designs depend on the work and the systems in place, and we do not promise results in numbers." },
+};
+
+// 1인 스튜디오가 일하는 방식 — 비교 우위 주장(가격·성과) 없이
+export const DIFF = [
+  { k: ["대표가 직접 듣고, 직접 설계합니다", "첫 상담부터 구현과 인수인계까지 같은 사람이 맡습니다. 전달 과정에서 요구가 바뀌지 않습니다."], e: ["The founder listens and designs, in person", "The same person handles everything from the first conversation to build and hand-over, so nothing is lost in translation."] },
+  { k: ["판단이 빠릅니다", "내부 결재 단계가 없어 범위 조정과 기술 선택이 대화 안에서 정해집니다."], e: ["Decisions are quick", "With no internal sign-off chain, scope and technology choices are settled within the conversation."] },
+  { k: ["전략과 구현이 끊기지 않습니다", "진단 보고서로 끝내지 않고, 그 설계를 실제로 작동하는 시스템으로 만듭니다."], e: ["Strategy and build stay connected", "The work does not stop at a diagnostic report; the design becomes a system that runs."] },
+  { k: ["업무에 맞춰 기술을 고릅니다", "특정 도구를 팔지 않습니다. 기존 시스템과 예산, 운영할 사람에 맞는 방식을 택합니다."], e: ["Technology chosen to fit the work", "We do not resell a particular tool; we choose what fits your systems, budget and the people who will run it."] },
+  { k: ["단계마다 산출물이 남습니다", "업무 지도, 설계서, 작동하는 결과물, 운영 기록. 다음 단계로 갈지는 그 산출물을 보고 정합니다."], e: ["Every stage leaves a deliverable", "Process maps, designs, working software and run records — each next step is decided on what you can see."] },
+  { k: ["작은 과제에서 시작할 수 있습니다", "처음부터 큰 계약을 맺기보다, 검증할 수 있는 한 가지 업무로 시작합니다."], e: ["You can start small", "Rather than a large contract up front, we can begin with one piece of work that can be verified."] },
+];
+
+export const INDUSTRIES = [
+  { k: ["법률", "양이 많고 정확성이 중요한 문서와 절차를 다루는 업무.", ["판례·문서 검색", "검토 보조 흐름", "사건 일정 관리"]], e: ["Legal", "Work with large volumes of precise documents and procedure.", ["Case-law & document search", "Review-support workflows", "Matter scheduling"]] },
+  { k: ["부동산·프롭테크", "흩어진 공공 데이터와 공고를 모으고 조건에 맞게 정리하는 업무.", ["공고·실거래 수집", "조건별 후보 정리", "일정·알림"]], e: ["Real estate & proptech", "Gathering scattered public data and notices and sorting them by criteria.", ["Notice & transaction collection", "Candidates by criteria", "Dates & alerts"]] },
+  { k: ["금융·전문서비스", "자료 취합과 보고, 검토·승인 기록이 반복되는 업무.", ["보고 자료 취합", "문의 분류", "검토·승인 기록"]], e: ["Finance & professional services", "Recurring gathering, reporting and review records.", ["Report data gathering", "Enquiry triage", "Review & approval logs"]] },
+  { k: ["공공행정·정책", "공개 자료를 지속적으로 살피고 근거를 정리하는 업무.", ["공개 자료 모니터링", "이슈 정리", "근거 관리"]], e: ["Public administration & policy", "Continuously tracking public sources and organising evidence.", ["Public-source monitoring", "Issue briefs", "Evidence management"]] },
+  { k: ["일반 기업의 반복 업무", "부서마다 매주, 매달 되풀이되는 정리와 전달.", ["주간 보고 자동화", "데이터 정리", "시스템 간 연결"]], e: ["Recurring work in any company", "The tidying and hand-offs every team repeats weekly and monthly.", ["Weekly report automation", "Data cleaning", "Connecting systems"]] },
+];
+
+// 대표 — 사용자가 확인해 준 사실만. 이름·학력·자격은 확인 전이라 쓰지 않는다.
+export const FOUNDER = {
+  k: { role: "아뜰리에 AX 대표", line: "업무 진단 · 시스템 설계 · 개발 · 운영 인수인계",
+    facts: [["직접 하는 일", "업무 진단부터 설계, 개발, 운영 인수인계까지 직접 수행합니다."], ["실무 배경", "법무법인 경국에서 법률 실무 환경을 경험했습니다. 대표 개인의 경력이며, 경국은 아뜰리에 AX의 고객이나 협력 기관이 아닙니다."], ["공개 작업", "Atelier AX Studio · 국정 한눈에 · 집캐치"], ["관심 분야", "법률·부동산 업무의 AI 전환, 공공데이터 활용, AI 결과의 검증과 승인 구조"]] },
+  e: { role: "Founder, Atelier AX", line: "Diagnosis · system design · engineering · hand-over",
+    facts: [["Does personally", "Everything from process diagnosis to design, engineering and operational hand-over."], ["Background", "Experience of legal practice at the Korean law firm 법무법인 경국 — the founder's own career; the firm is not a client or partner of Atelier AX."], ["Public work", "Atelier AX Studio · Gukjeong at a Glance · ZipCatch"], ["Interests", "AI transformation in legal and real-estate work, public data, and verification and approval structures for AI"]] },
+};
+
+export const FAQ = {
+  k: [["어떤 문제를 상담할 수 있나요?", "반복 업무 자동화, AI 도입 우선순위, 사내 도구 개발, 이미 쓰고 있는 AI·자동화의 점검 등입니다. 아직 정리되지 않은 고민도 괜찮습니다."],
+    ["제안서나 요구사항 문서가 없어도 되나요?", "네. 지금 어떻게 일하고 있는지, 무엇이 불편한지만 알려 주시면 됩니다. 정리는 첫 대화에서 함께 합니다."],
+    ["상담 후에는 어떻게 진행되나요?", "첫 대화에서 현재 흐름과 목표를 확인하고, 범위·일정·산출물을 제안드립니다. 합의한 범위에서 시작하며 단계마다 결과를 함께 봅니다."],
+    ["기밀 자료는 어떻게 다루나요?", "첫 문의에는 기밀 자료나 고객 개인정보를 넣지 마세요. 필요한 경우 범위를 합의한 뒤 최소한의 자료만 합의한 방법으로 받고, 작업이 끝나면 반환하거나 삭제합니다. 요청하시면 비밀유지 약정을 먼저 맺고 시작합니다."],
+    ["비용은 어떻게 정하나요?", "범위를 확인한 뒤 개별로 제안합니다. 정해진 패키지 가격은 두지 않습니다."]],
+  e: [["What can we talk about?", "Automating repetitive work, prioritising AI adoption, building internal tools, or reviewing AI and automation you already run. An unstructured concern is fine too."],
+    ["Do we need a proposal or requirements document?", "No. Tell us how the work is done today and what gets in the way; we structure it together in the first conversation."],
+    ["What happens after the first conversation?", "We confirm the current flow and the goal, then propose scope, schedule and deliverables. Work starts within the agreed scope and results are reviewed at every stage."],
+    ["How is confidential material handled?", "Please keep confidential documents and customers' personal data out of a first enquiry. If needed, we agree the scope first, receive only the minimum through an agreed channel, and return or delete it when the work ends. We can sign a non-disclosure agreement before starting."],
+    ["How is pricing set?", "Individually, once the scope is clear. We do not sell fixed packages."]],
+};
+
+// 인사이트 — 발행된 글만 POSTS 에 넣는다(제목·날짜·요약·본문 HTML). 빈 배열이면 목록 대신 '준비 중인 주제'만 보인다.
+export const POSTS = [];
+export const TOPICS = {
+  k: [["법률산업", "법률산업의 AI 전환", "문서와 절차가 많은 업무에서 무엇을 먼저 바꿔야 하는가."], ["에이전트", "AI 에이전트의 업무 적용과 한계", "에이전트에게 맡길 일과 맡기면 안 되는 일의 경계."], ["프로세스", "AI 도입 이전의 프로세스 혁신", "도구보다 먼저 정리해야 하는 업무 구조."], ["데이터", "부동산·공공데이터의 실무 활용", "공개 데이터를 실제 업무 판단에 쓰는 방법."], ["거버넌스", "AI 시스템의 검증·승인·책임 구조", "AI가 한 일을 누가, 어떻게 확인하는가."]],
+  e: [["Legal", "AI transformation in the legal sector", "What to change first in document- and procedure-heavy work."], ["Agents", "AI agents at work: uses and limits", "Where to draw the line on what agents should and should not do."], ["Process", "Process innovation before AI", "The work structure to sort out before choosing tools."], ["Data", "Real estate and public data in practice", "Using open data for real operational decisions."], ["Governance", "Verification, approval and accountability for AI", "Who checks what AI has done, and how."]],
+};
