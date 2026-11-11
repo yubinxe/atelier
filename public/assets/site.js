@@ -1,76 +1,37 @@
 // Atelier AX — 사이트 인터랙션. 움직임은 이해를 돕는 곳에만, prefers-reduced-motion 이면 정지 화면.
+// 이 파일이 실패해도 모든 내용은 보인다(숨김은 여기서 붙이는 .reveal 클래스에만 걸려 있다).
 const $ = (s, el = document) => el.querySelector(s), $$ = (s, el = document) => [...el.querySelectorAll(s)];
 const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const ko = document.documentElement.lang !== "en";
 
-// ── 헤더: 어두운 첫 화면 위에서는 밝은 글자, 내려가면 바탕색 ──
-const top = $("#top"), firstDark = $(".hero, .page-head");
-const onScroll = () => { if (!top) return; const past = !firstDark || scrollY > firstDark.offsetHeight - 80; top.classList.toggle("on-dark", !past); top.classList.toggle("scrolled", past && scrollY > 8); };
+// ── 헤더: 내려가면 아래 선 하나 ──
+const top = $("#top");
+const onScroll = () => top?.classList.toggle("scrolled", scrollY > 8);
 addEventListener("scroll", onScroll, { passive: true }); onScroll();
 const menu = $(".menu");
-if (menu) { menu.addEventListener("click", (e) => { if (e.target.closest("a")) menu.open = false; }); addEventListener("keydown", (e) => { if (e.key === "Escape" && menu.open) { menu.open = false; $("summary", menu).focus(); } }); }
-
-// ── 나타나기 ──
-const io = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); } }), { rootMargin: "0px 0px -8% 0px" });
-$$("[data-reveal]").forEach((el) => (reduce ? el.classList.add("in") : io.observe(el)));
-
-// ── 포인터 빛: 버튼·카드 위 커서 위치 ──
-if (!reduce) addEventListener("pointermove", (e) => { const el = e.target.closest?.(".btn, [data-light]"); if (!el) return; const r = el.getBoundingClientRect(); el.style.setProperty("--mx", `${e.clientX - r.left}px`); el.style.setProperty("--my", `${e.clientY - r.top}px`); }, { passive: true });
-
-// ── 히어로 흐름도: 일감이 입력 → 수집 → AI → 검토 → 결과로 흐른다 ──
-const flow = $("[data-flow]");
-if (flow) {
-  const svg = $("svg", flow), cap = $(".cap", flow), toks = $(".toks", flow), nodes = $$(".node", flow);
-  const P = (id) => $("#" + id, svg);
-  const route = (s) => [P("p-s" + s), P("p-ca"), P("p-ag"), P("p-go")];
-  const kindAt = ["", "ai", "ai", "ok"];
-  let hold = null, items = [], last = performance.now(), visible = true, idleIx = 0, idleT = 0;
-  const pick = (k) => { nodes.forEach((n) => n.classList.toggle("hot", n.dataset.k === k)); const n = nodes.find((x) => x.dataset.k === k); if (n) cap.textContent = n.dataset.cap; };
-  nodes.forEach((n) => { const on = () => { hold = n.dataset.k; pick(hold); }, off = () => { hold = null; };
-    n.addEventListener("pointerenter", on); n.addEventListener("focus", on); n.addEventListener("pointerleave", off); n.addEventListener("blur", off); });
-  const spawn = () => { const s = Math.floor(Math.random() * 3), g = document.createElementNS("http://www.w3.org/2000/svg", "g"); g.setAttribute("class", "tok"); g.innerHTML = '<rect x="-7" y="-5" width="14" height="10" rx="3"/>'; toks.append(g); items.push({ g, segs: route(s), i: 0, d: 0, wait: 0 }); };
-  const step = (now) => {
-    const dt = Math.min(64, now - last); last = now;
-    if (visible) {
-      if (items.length < (innerWidth < 640 ? 4 : 7) && Math.random() < dt / 520) spawn();
-      for (const it of items) {
-        if (it.wait > 0) { it.wait -= dt; continue; }
-        const seg = it.segs[it.i], L = seg.getTotalLength(); it.d += dt * 0.085;
-        if (it.d >= L) { it.i++; it.d = 0; if (it.i === 3) it.wait = 650; if (it.i >= it.segs.length) { it.g.remove(); it.done = true; continue; } it.g.setAttribute("class", "tok " + kindAt[it.i]); }
-        const p = it.segs[it.i].getPointAtLength(Math.min(it.d, it.segs[it.i].getTotalLength())); it.g.setAttribute("transform", `translate(${p.x.toFixed(1)} ${p.y.toFixed(1)})`);
-      }
-      items = items.filter((x) => !x.done);
-      if (!hold) { idleT += dt; if (idleT > 2600) { idleT = 0; idleIx = (idleIx + 1) % 5; pick(["src", "collect", "ai", "gate", "out"][idleIx]); } }
-    }
-    requestAnimationFrame(step);
-  };
-  pick("src");
-  if (!reduce) {
-    new IntersectionObserver(([e]) => (visible = e.isIntersecting)).observe(flow);
-    requestAnimationFrame(step);
-    // 깊이감: 포인터를 따라 겹이 조금씩 다르게 움직인다
-    const lyrs = $$(".lyr", svg);
-    flow.addEventListener("pointermove", (e) => { const r = flow.getBoundingClientRect(), x = (e.clientX - r.left) / r.width - 0.5, y = (e.clientY - r.top) / r.height - 0.5; lyrs.forEach((l) => { const d = +l.dataset.depth; l.style.transform = `translate(${(-x * d).toFixed(1)}px, ${(-y * d).toFixed(1)}px)`; }); });
-    flow.addEventListener("pointerleave", () => lyrs.forEach((l) => (l.style.transform = "")));
-  }
+if (menu) {
+  menu.addEventListener("click", (e) => { if (e.target.closest("a")) menu.open = false; });
+  addEventListener("keydown", (e) => { if (e.key === "Escape" && menu.open) { menu.open = false; $("summary", menu).focus(); } });
+  document.addEventListener("click", (e) => { if (menu.open && !menu.contains(e.target)) menu.open = false; });
 }
 
-// ── 지금의 방식 / 재설계 비교 ──
-$$("[data-ba]").forEach((box) => {
-  const tabs = $$('[role="tab"]', box);
-  const sel = (t) => { tabs.forEach((x) => { const on = x === t; x.setAttribute("aria-selected", on); x.tabIndex = on ? 0 : -1; const p = $("#" + x.getAttribute("aria-controls"), box); p.hidden = !on; p.classList.remove("show"); if (on) requestAnimationFrame(() => requestAnimationFrame(() => p.classList.add("show"))); }); };
-  tabs.forEach((t) => { t.addEventListener("click", () => sel(t)); t.addEventListener("keydown", (e) => { if (!["ArrowLeft", "ArrowRight"].includes(e.key)) return; e.preventDefault(); const n = tabs[(tabs.indexOf(t) + (e.key === "ArrowRight" ? 1 : tabs.length - 1)) % tabs.length]; sel(n); n.focus(); }); });
-  // 처음 화면에 들어오면 한 번 '재설계'로 넘겨 차이를 보여 준다
-  if (!reduce) { const o = new IntersectionObserver(([e]) => { if (e.isIntersecting) { o.disconnect(); setTimeout(() => { if (tabs[0].getAttribute("aria-selected") === "true" && !box.contains(document.activeElement)) sel(tabs[1]); }, 1800); } }, { threshold: 0.6 }); o.observe(box); }
-});
+// ── 섹션 머리말만 한 번 드러난다. 관찰자를 못 쓰면 숨기지 않는다(내용이 사라지는 일이 없게). ──
+if (!reduce && "IntersectionObserver" in window) {
+  const els = $$("[data-reveal]");
+  const io = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); } }), { rootMargin: "0px 0px -6% 0px" });
+  els.forEach((el) => { if (el.getBoundingClientRect().top < innerHeight) el.classList.add("in"); else io.observe(el); });
+  document.documentElement.classList.add("reveal");
+  setTimeout(() => els.forEach((el) => el.classList.add("in")), 4000); // 안전장치
+}
 
-// ── 방법론: 스크롤에 따라 단계가 켜진다 ──
-const method = $("[data-method]");
-if (method) {
-  const steps = $$("[data-step]", method), pts = $$("[data-pt]", method), arc = $(".arc", method), C = 942.5;
-  const on = (i) => { steps.forEach((s, j) => s.classList.toggle("on", j === i)); pts.forEach((p, j) => p.classList.toggle("on", j <= i)); if (arc) arc.style.strokeDashoffset = String(C - (C * (i + 1)) / 4); const n = $("[data-dial-n]", method), t = $("[data-dial-t]", method); if (n) n.textContent = "0" + (i + 1); if (t) t.textContent = steps[i].dataset.name; };
-  const so = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) on(steps.indexOf(e.target)); }), { rootMargin: "-45% 0px -45% 0px" });
-  steps.forEach((s) => so.observe(s));
+// ── 업무 기록지: 한 건의 일이 다섯 단계를 차례로 지난다. 사람 승인 단계에서 가장 오래 머문다. ──
+const flow = $("[data-flow]");
+if (flow && !reduce && "IntersectionObserver" in window) {
+  const rows = $$("li", flow); let i = -1, timer = 0, visible = false;
+  const next = () => { i = (i + 1) % rows.length; rows.forEach((r, j) => r.classList.toggle("at", j === i)); timer = setTimeout(next, rows[i].querySelector(".gate") ? 3200 : 1800); };
+  const arm = () => { clearTimeout(timer); if (visible && !document.hidden) timer = setTimeout(next, 900); };
+  new IntersectionObserver(([e]) => { visible = e.isIntersecting; arm(); }).observe(flow);
+  document.addEventListener("visibilitychange", arm);
 }
 
 // ── 실제 작동 시연: Studio Demo 엔진(sim.js·floor.js)을 그대로 불러와 돌린다(보일 때만) ──

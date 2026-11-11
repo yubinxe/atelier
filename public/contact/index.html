@@ -17,23 +17,23 @@
 <meta property="og:image" content="https://atelier-ax.vercel.app/assets/og.png">
 <meta property="og:locale" content="ko_KR">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="theme-color" content="#0a1122">
+<meta name="theme-color" content="#f7f4ee">
 <link rel="icon" href="/assets/mark.svg" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/site.css?v=3">
+<link rel="stylesheet" href="/assets/site.css?v=4">
 <script>document.documentElement.classList.add("js")</script>
 
 </head>
 <body>
 <a class="skip" href="#main">본문으로 건너뛰기</a>
-<header class="top on-dark" id="top"><div class="wrap">
-  <a class="brand" href="/" aria-label="아뜰리에 AX"><svg viewBox="0 0 26 26" aria-hidden="true"><rect x="1" y="1" width="24" height="24" rx="6" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M7 21V12a6 6 0 0 1 12 0v9" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M13 6.5V21" stroke="#9dbbff" stroke-width="1.5"/></svg><span>Atelier AX</span></a>
+<header class="top" id="top"><div class="wrap">
+  <a class="brand" href="/"><svg viewBox="0 0 26 26" aria-hidden="true"><rect x="1" y="1" width="24" height="24" rx="6" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M7 21V12a6 6 0 0 1 12 0v9" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M13 6.5V21" stroke="#b3935a" stroke-width="1.5"/></svg><span>Atelier AX</span></a>
   <nav class="nav" aria-label="주요 메뉴"><a href="/services/">서비스</a><a href="/work/">작업</a><a href="/lab/">랩</a><a href="/insights/">인사이트</a><a href="/about/">회사 소개</a><a class="lang" href="/en/contact/" hreflang="en" lang="en" aria-label="English">EN</a><a class="btn sm" href="/contact/">상담 신청</a></nav>
   <details class="menu"><summary aria-label="메뉴"><i aria-hidden="true"></i>메뉴</summary><div class="sheet"><a href="/services/">서비스<span>01</span></a><a href="/work/">작업<span>02</span></a><a href="/lab/">랩<span>03</span></a><a href="/insights/">인사이트<span>04</span></a><a href="/about/">회사 소개<span>05</span></a><a href="/en/contact/" hreflang="en" lang="en">English<span>EN</span></a><a class="btn" href="/contact/">상담 신청</a></div></details>
 </div></header>
 <main id="main" tabindex="-1">
 <section class="page-head"><div class="wrap"><p class="kicker">상담 신청</p><h1 class="display">바꾸고 싶은 업무를 알려 주세요.</h1>
   <p class="lede">정리된 기획서가 없어도 괜찮습니다. 지금 어떻게 일하고 있는지, 무엇이 불편한지만 적어 주시면 내용을 확인한 뒤 대표가 직접 회신드립니다.</p></div></section>
-<section class="sec" style="padding-top:clamp(48px,6vw,80px)"><div class="wrap split">
+<section class="sec tight"><div class="wrap split">
   <form class="form cform" id="contact" novalidate data-lang="ko">
     <div class="field"><label for="f-name">성명</label><input id="f-name" name="name" autocomplete="name" required maxlength="60"><p class="err" id="e-name"></p></div>
     <div class="field"><label for="f-company">소속 또는 기업명<span class="opt">선택</span></label><input id="f-company" name="company" autocomplete="organization" maxlength="100"></div>
@@ -43,24 +43,24 @@
     <div class="field full"><label for="f-stage">예상 프로젝트 단계</label><select id="f-stage" name="stage"><option value="explore">알아보는 중</option><option value="defined">해결할 과제가 정해짐</option><option value="budgeted">예산·일정이 정해짐</option><option value="running">이미 운영 중인 시스템 개선</option></select></div>
     <div class="hp" aria-hidden="true"><label for="f-website">Website</label><input id="f-website" name="website" tabindex="-1" autocomplete="off"></div>
     <div class="consent-box"><p><b>개인정보 수집·이용 안내</b></p><p>수집 항목: 성명, 소속(선택), 업무용 이메일, 문의 내용 · 목적: 문의 확인과 회신 · 보유 기간: 문의 처리 완료 후 1년, 이후 파기. 동의하지 않으실 수 있으나 이 경우 양식으로 문의를 받을 수 없습니다. <a href="/privacy/">개인정보처리방침</a></p></div>
-    <label class="consent"><input type="checkbox" name="consent" id="f-consent" required><span>위 개인정보 수집·이용에 동의합니다.</span></label><p class="err" id="e-consent" style="grid-column:1/-1;margin-top:-14px"></p>
+    <label class="consent"><input type="checkbox" name="consent" id="f-consent" required><span>위 개인정보 수집·이용에 동의합니다.</span></label><p class="err wide" id="e-consent"></p>
     <div class="submit-row"><button class="btn" type="submit" id="f-submit">문의 보내기 <span class="arr" aria-hidden="true">→</span></button><p class="result" id="f-result" role="status" aria-live="polite"></p></div>
   </form>
   <aside class="cside"><dl class="facts"><div><dt>회신</dt><dd>내용을 확인한 뒤 남겨 주신 이메일로 대표가 직접 회신드립니다.</dd></div><div><dt>언어</dt><dd>한국어, 영어</dd></div><div><dt>소재지</dt><dd>서울</dd></div></dl>
     <p class="note">기밀 자료나 고객 개인정보는 첫 문의에 포함하지 마세요.</p></aside>
 </div></section>
-<section class="sec white" aria-labelledby="h-faq"><div class="wrap split"><div style="grid-column:1/5"><p class="kicker">FAQ</p><h2 class="h2" id="h-faq">상담 전에 자주 묻는 것</h2></div>
-  <div class="faq" style="grid-column:6/13"><details><summary>어떤 문제를 상담할 수 있나요?</summary><p>반복 업무 자동화, AI 도입 우선순위, 사내 도구 개발, 이미 쓰고 있는 AI·자동화의 점검 등입니다. 아직 정리되지 않은 고민도 괜찮습니다.</p></details><details><summary>제안서나 요구사항 문서가 없어도 되나요?</summary><p>네. 지금 어떻게 일하고 있는지, 무엇이 불편한지만 알려 주시면 됩니다. 정리는 첫 대화에서 함께 합니다.</p></details><details><summary>상담 후에는 어떻게 진행되나요?</summary><p>첫 대화에서 현재 흐름과 목표를 확인하고, 범위·일정·산출물을 제안드립니다. 합의한 범위에서 시작하며 단계마다 결과를 함께 봅니다.</p></details><details><summary>기밀 자료는 어떻게 다루나요?</summary><p>첫 문의에는 기밀 자료나 고객 개인정보를 넣지 마세요. 필요한 경우 범위를 합의한 뒤 최소한의 자료만 합의한 방법으로 받고, 작업이 끝나면 반환하거나 삭제합니다. 요청하시면 비밀유지 약정을 먼저 맺고 시작합니다.</p></details><details><summary>비용은 어떻게 정하나요?</summary><p>범위를 확인한 뒤 개별로 제안합니다. 정해진 패키지 가격은 두지 않습니다.</p></details></div></div></section>
+<section class="sec white" aria-labelledby="h-faq"><div class="wrap split"><div class="faq-h"><p class="kicker">FAQ</p><h2 class="h2" id="h-faq">상담 전에 자주 묻는 것</h2></div>
+  <div class="faq"><details><summary>어떤 문제를 상담할 수 있나요?</summary><p>반복 업무 자동화, AI 도입 우선순위, 사내 도구 개발, 이미 쓰고 있는 AI·자동화의 점검 등입니다. 아직 정리되지 않은 고민도 괜찮습니다.</p></details><details><summary>제안서나 요구사항 문서가 없어도 되나요?</summary><p>네. 지금 어떻게 일하고 있는지, 무엇이 불편한지만 알려 주시면 됩니다. 정리는 첫 대화에서 함께 합니다.</p></details><details><summary>상담 후에는 어떻게 진행되나요?</summary><p>첫 대화에서 현재 흐름과 목표를 확인하고, 범위·일정·산출물을 제안드립니다. 합의한 범위에서 시작하며 단계마다 결과를 함께 봅니다.</p></details><details><summary>기밀 자료는 어떻게 다루나요?</summary><p>첫 문의에는 기밀 자료나 고객 개인정보를 넣지 마세요. 필요한 경우 범위를 합의한 뒤 최소한의 자료만 합의한 방법으로 받고, 작업이 끝나면 반환하거나 삭제합니다. 요청하시면 비밀유지 약정을 먼저 맺고 시작합니다.</p></details><details><summary>비용은 어떻게 정하나요?</summary><p>범위를 확인한 뒤 개별로 제안합니다. 정해진 패키지 가격은 두지 않습니다.</p></details></div></div></section>
 </main>
 <footer class="foot"><div class="wrap">
   <div class="grid">
-    <div class="who"><a class="brand" href="/"><svg viewBox="0 0 26 26" aria-hidden="true"><rect x="1" y="1" width="24" height="24" rx="6" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M7 21V12a6 6 0 0 1 12 0v9" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M13 6.5V21" stroke="#9dbbff" stroke-width="1.5"/></svg><span>Atelier AX</span></a><p>업무를 진단하고, AI와 자동화를 결합해 실제로 운영할 수 있는 시스템으로 구현하는 독립 AX 컨설팅 스튜디오.</p></div>
+    <div class="who"><a class="brand" href="/"><svg viewBox="0 0 26 26" aria-hidden="true"><rect x="1" y="1" width="24" height="24" rx="6" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M7 21V12a6 6 0 0 1 12 0v9" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M13 6.5V21" stroke="#b3935a" stroke-width="1.5"/></svg><span>Atelier AX</span></a><p>업무를 진단하고, AI와 자동화를 결합해 실제로 운영할 수 있는 시스템으로 구현하는 독립 AX 컨설팅 스튜디오.</p></div>
     <nav aria-label="회사"><b>회사</b><a href="/about/">회사 소개</a><a href="/contact/">상담 신청</a></nav>
     <nav aria-label="살펴보기"><b>살펴보기</b><a href="/services/">서비스</a><a href="/work/">작업</a><a href="/lab/">랩</a><a href="/insights/">인사이트</a><a href="/studio/">Studio Demo</a></nav>
     <nav aria-label="안내"><b>안내</b><a href="/privacy/">개인정보처리방침</a><a href="/en/contact/" hreflang="en" lang="en">English</a></nav>
   </div>
   <div class="legal"><span>아뜰리에 AX · 개인사업자 · 서울</span><span>© 2026 Atelier AX</span></div>
 </div></footer>
-<script src="/assets/site.js?v=3" type="module"></script>
+<script src="/assets/site.js?v=4" type="module"></script>
 </body>
 </html>
