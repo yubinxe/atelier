@@ -17,25 +17,25 @@
 <meta property="og:image" content="https://atelier-ax.vercel.app/assets/og.png">
 <meta property="og:locale" content="en_US">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="theme-color" content="#0a1122">
+<meta name="theme-color" content="#f7f4ee">
 <link rel="icon" href="/assets/mark.svg" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/site.css?v=3">
+<link rel="stylesheet" href="/assets/site.css?v=4">
 <script>document.documentElement.classList.add("js")</script>
 
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
-<header class="top on-dark" id="top"><div class="wrap">
-  <a class="brand" href="/en/" aria-label="Atelier AX"><svg viewBox="0 0 26 26" aria-hidden="true"><rect x="1" y="1" width="24" height="24" rx="6" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M7 21V12a6 6 0 0 1 12 0v9" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M13 6.5V21" stroke="#9dbbff" stroke-width="1.5"/></svg><span>Atelier AX</span></a>
+<header class="top" id="top"><div class="wrap">
+  <a class="brand" href="/en/"><svg viewBox="0 0 26 26" aria-hidden="true"><rect x="1" y="1" width="24" height="24" rx="6" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M7 21V12a6 6 0 0 1 12 0v9" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M13 6.5V21" stroke="#b3935a" stroke-width="1.5"/></svg><span>Atelier AX</span></a>
   <nav class="nav" aria-label="Main"><a href="/en/services/">Services</a><a href="/en/work/">Work</a><a href="/en/lab/" aria-current="page">Lab</a><a href="/en/insights/">Insights</a><a href="/en/about/">About</a><a class="lang" href="/lab/" hreflang="ko" lang="ko" aria-label="한국어">KO</a><a class="btn sm" href="/en/contact/">Start a conversation</a></nav>
   <details class="menu"><summary aria-label="Menu"><i aria-hidden="true"></i>Menu</summary><div class="sheet"><a href="/en/services/">Services<span>01</span></a><a href="/en/work/">Work<span>02</span></a><a href="/en/lab/">Lab<span>03</span></a><a href="/en/insights/">Insights<span>04</span></a><a href="/en/about/">About<span>05</span></a><a href="/lab/" hreflang="ko" lang="ko">한국어<span>KO</span></a><a class="btn" href="/en/contact/">Start a conversation</a></div></details>
 </div></header>
 <main id="main" tabindex="-1">
 <section class="page-head"><div class="wrap"><p class="kicker">Atelier Lab</p><h1 class="display">A lab you can see, operate and inspect.</h1>
   <p class="lede">Everything in the lab runs on simulated data, inside your browser, without real AI keys or client data — and is labelled as a demo on screen.</p></div></section>
-<section class="sec" style="padding-top:clamp(48px,6vw,80px)"><div class="wrap"><ul class="lab-modes"><li><a class="card" href="/studio/" data-light data-reveal><span class="status live">Demo</span><h2 class="h3">Project Studio</h2><p class="body" style="font-size:15px">Describe an idea and an AI team divides it into six stages. A person decides at each approval gate, and every check is recorded.</p><span class="go">Open <span class="arr" aria-hidden="true">→</span></span></a></li><li><a class="card" href="/studio/#/bridge" data-light data-reveal><span class="status live">Simulation</span><h2 class="h3">AI Work Model House</h2><p class="body" style="font-size:15px">Watch several AI agents carry out their own work on a live floor plan, including failures and recovery.</p><span class="go">Open <span class="arr" aria-hidden="true">→</span></span></a></li><li><a class="card" href="/console/" data-light data-reveal><span class="status proto">Archived</span><h2 class="h3">Operations Console · first edition</h2><p class="body" style="font-size:15px">The first monitoring view of AI workers' tasks, approvals and performance, kept for the record.</p><span class="go">Open <span class="arr" aria-hidden="true">→</span></span></a></li></ul></div></section>
+<section class="sec tight"><div class="wrap"><ul class="lab-modes"><li><a class="card" href="/studio/"><span class="status live">Demo</span><h2 class="h3">Project Studio</h2><p>Describe an idea and an AI team divides it into six stages. A person decides at each approval gate, and every check is recorded.</p><span class="go">Open <span class="arr" aria-hidden="true">→</span></span></a></li><li><a class="card" href="/studio/#/bridge"><span class="status live">Simulation</span><h2 class="h3">AI Work Model House</h2><p>Watch several AI agents carry out their own work on a live floor plan, including failures and recovery.</p><span class="go">Open <span class="arr" aria-hidden="true">→</span></span></a></li><li><a class="card" href="/console/"><span class="status proto">Archived</span><h2 class="h3">Operations Console · first edition</h2><p>The first monitoring view of AI workers' tasks, approvals and performance, kept for the record.</p><span class="go">Open <span class="arr" aria-hidden="true">→</span></span></a></li></ul></div></section>
 <section class="sec white" aria-labelledby="h-arch"><div class="wrap">
-  <div class="sec-head"><div><p class="kicker">Architecture</p><h2 class="h2" id="h-arch" data-reveal>A boundary between AI execution and human approval</h2></div><p class="body" data-reveal>Work records sent by AI tools are normalised and stored on the server, and only people with an access code can view them. The public demo uses separate, simulated scripts.</p></div>
+  <div class="sec-head" data-reveal><div><p class="kicker">Architecture</p><h2 class="h2" id="h-arch"><span class="ph">A boundary between AI execution and human approval</span></h2></div><p class="body">Work records sent by AI tools are normalised and stored on the server, and only people with an access code can view them. The public demo uses separate, simulated scripts.</p></div>
   <div class="arch" role="img" aria-label="Diagram: AI tools send work records to the event bridge; stored records are viewed only by authorised users. The public demo runs separately on simulated scripts in the browser.">
   <svg viewBox="0 0 960 300" aria-hidden="true"><defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="currentColor"/></marker></defs>
     <rect class="bx" x="10" y="40" width="180" height="96" rx="10"/><text x="28" y="72">AI tools</text><text class="sm" x="28" y="96">Claude Code · n8n</text><text class="sm" x="28" y="114">a record per action</text>
@@ -51,13 +51,13 @@
 </main>
 <footer class="foot"><div class="wrap">
   <div class="grid">
-    <div class="who"><a class="brand" href="/en/"><svg viewBox="0 0 26 26" aria-hidden="true"><rect x="1" y="1" width="24" height="24" rx="6" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M7 21V12a6 6 0 0 1 12 0v9" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M13 6.5V21" stroke="#9dbbff" stroke-width="1.5"/></svg><span>Atelier AX</span></a><p>An independent AX consulting studio that diagnoses how work is done and turns it into systems that run, combining AI and automation.</p></div>
+    <div class="who"><a class="brand" href="/en/"><svg viewBox="0 0 26 26" aria-hidden="true"><rect x="1" y="1" width="24" height="24" rx="6" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M7 21V12a6 6 0 0 1 12 0v9" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M13 6.5V21" stroke="#b3935a" stroke-width="1.5"/></svg><span>Atelier AX</span></a><p>An independent AX consulting studio that diagnoses how work is done and turns it into systems that run, combining AI and automation.</p></div>
     <nav aria-label="Company"><b>Company</b><a href="/en/about/">About</a><a href="/en/contact/">Start a conversation</a></nav>
     <nav aria-label="Explore"><b>Explore</b><a href="/en/services/">Services</a><a href="/en/work/">Work</a><a href="/en/lab/">Lab</a><a href="/en/insights/">Insights</a><a href="/studio/">Studio Demo</a></nav>
     <nav aria-label="Legal"><b>Legal</b><a href="/en/privacy/">Privacy policy</a><a href="/lab/" hreflang="ko" lang="ko">한국어</a></nav>
   </div>
   <div class="legal"><span>Atelier AX · Sole proprietorship · Seoul, Korea</span><span>© 2026 Atelier AX</span></div>
 </div></footer>
-<script src="/assets/site.js?v=3" type="module"></script>
+<script src="/assets/site.js?v=4" type="module"></script>
 </body>
 </html>
