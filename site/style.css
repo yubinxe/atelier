@@ -471,3 +471,46 @@ fieldset.field { border: 0; padding: 0; margin: 0; } .chips { display: flex; fle
 [data-magnet] { transition: transform .45s var(--ease), box-shadow .3s; }
 .top.dk, .top.dk.scrolled { background: color-mix(in srgb, var(--night) 82%, transparent); backdrop-filter: saturate(1.3) blur(12px); color: var(--on-dark); border-bottom-color: var(--navy-line); }
 .en .hero.cine .display { font-size: clamp(36px, 4.15vw, 62px); }
+
+/* ── v5 AI 작업실 — 스크롤로 창이 화면 가득 열리고, 누르면 확대되며 입장 ── */
+.room { position: relative; height: 260vh; background: var(--night); color: var(--on-dark); }
+.room-pin { position: sticky; top: 0; height: 100svh; overflow: hidden; display: grid; grid-template-rows: auto 1fr auto; }
+.room-head { width: 100%; padding-top: clamp(84px, 11vh, 120px); padding-bottom: 28px; opacity: calc(1 - var(--rp, 0) * 2.2); transform: translateY(calc(var(--rp, 0) * -40px)); }
+.room-head .kicker { color: var(--ice); }
+.room-head .h2 { color: #fff; max-width: 16ch; }
+.room-win { --q: calc(1 - var(--rp, 0)); --ins-t: calc(var(--q) * 34svh); --ins-b: calc(var(--q) * 11svh); --ins-x: calc(var(--q) * 22vw); --rad: calc(var(--q) * 28px);
+  position: absolute; inset: 0; display: block; color: #fff; text-decoration: none; overflow: hidden; background: #070b16;
+  clip-path: inset(var(--ins-t) var(--ins-x) var(--ins-b) var(--ins-x) round var(--rad)); }
+.room-win img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 58%; transform: scale(calc(1.18 - var(--rp, 0) * .18)); transform-origin: 50% 55%; transition: transform .9s cubic-bezier(.2, .8, .2, 1), filter .9s; }
+.room-win::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(7, 11, 22, .55) 0%, transparent 26%, transparent 62%, rgba(7, 11, 22, .82) 100%); opacity: calc(.35 + var(--rp, 0) * .65); pointer-events: none; }
+.room-ui { position: absolute; inset: 0; z-index: 2; display: grid; grid-template-columns: 1fr auto; grid-template-rows: auto 1fr auto; padding: clamp(84px, 12vh, 120px) max(var(--pad), calc((100% - var(--max)) / 2 + var(--pad))) clamp(28px, 6vh, 56px); opacity: clamp(0, calc((var(--rp, 0) - .55) * 3), 1); transform: translateY(calc((1 - var(--rp, 0)) * 24px)); }
+.room-chip { grid-column: 1 / -1; justify-self: start; font: 500 12px var(--sans); color: #dfe6f5; background: rgba(10, 17, 34, .7); border: 1px solid rgba(255, 255, 255, .14); padding: 6px 11px; border-radius: 999px; backdrop-filter: blur(6px); }
+.room-title { grid-row: 3; align-self: end; display: grid; gap: 6px; }
+.room-title b { font-weight: 660; font-size: clamp(34px, 5.4vw, 76px); line-height: 1; letter-spacing: -.045em; }
+.room-title span { font-size: 15px; color: var(--on-dark-2); }
+.room-cta { grid-row: 3; grid-column: 2; align-self: end; display: inline-flex; align-items: center; gap: 12px; min-height: 52px; padding: 0 26px; border-radius: 999px; background: #fff; color: var(--ink); font: 650 15.5px var(--sans); box-shadow: 0 18px 40px -18px rgba(0, 0, 0, .8); transition: transform .5s var(--ease), box-shadow .5s; }
+.room-cta i { font-style: normal; transition: transform .5s var(--ease); }
+.room-win:hover .room-cta, .room-win:focus-visible .room-cta { transform: translateY(-2px); box-shadow: 0 24px 50px -18px rgba(0, 0, 0, .9); }
+.room-win:hover .room-cta i { transform: translateX(4px); }
+.room-win:hover img { filter: brightness(1.08); }
+.room-win:focus-visible { outline: none; } .room-win:focus-visible .room-cta { outline: 2px solid var(--ice); outline-offset: 3px; }
+.room-notes { position: relative; z-index: 3; grid-row: 3; width: 100%; list-style: none; margin: 0 auto; padding-bottom: 20px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; opacity: calc(1 - var(--rp, 0) * 3); pointer-events: none; }
+.room-notes li { display: grid; gap: 2px; font-size: 13.5px; color: var(--on-dark-3); } .room-notes b { color: var(--on-dark); font-weight: 620; font-size: 14px; }
+/* 입장 — 눌린 창이 화면 너머로 확대되며 어두워진다 */
+.room.go .room-win img { transform: scale(1.35); filter: brightness(.4) blur(2px); }
+.room.go .room-ui { opacity: 0 !important; transition: opacity .35s; }
+.room-veil { position: fixed; inset: 0; z-index: 90; background: #04070f; opacity: 0; pointer-events: none; transition: opacity .55s ease .25s; }
+.room.go .room-veil { opacity: 1; }
+@media (max-width: 640px) {
+  .room { height: 220vh; }
+  .room-win { --ins-x: calc(var(--q) * 5vw); --ins-t: calc(var(--q) * 30svh); --ins-b: calc(var(--q) * 24svh); }
+  .room-win img { object-position: 38% 60%; }
+  .room-ui { grid-template-columns: 1fr; } .room-cta { grid-row: 4; grid-column: 1; justify-self: stretch; justify-content: center; margin-top: 18px; }
+  .room-notes { grid-template-columns: 1fr; gap: 8px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .room { height: auto; } .room-pin { position: static; height: auto; display: block; padding-bottom: clamp(56px, 8vw, 96px); }
+  .room-head, .room-notes { opacity: 1 !important; transform: none !important; }
+  .room-win { position: relative; inset: auto; margin: 0 var(--pad); aspect-ratio: 16 / 10; clip-path: inset(0 round 20px); --rp: 1; }
+  .room-notes { margin-top: 24px; } .room-win img { transform: none !important; }
+}

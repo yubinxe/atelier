@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 import { ORG, SERVICES, METHOD, WORK, PAINS, BA, DIFF, INDUSTRIES, FOUNDER, FAQ, POSTS, TOPICS } from "./content.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url)), ROOT = join(HERE, "..", "public");
-const V = "4"; // 정적 자산 캐시 버전
+const V = "5"; // 정적 자산 캐시 버전
 const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const MARK = (c = "currentColor") => `<svg viewBox="0 0 26 26" aria-hidden="true"><rect x="1" y="1" width="24" height="24" rx="6" fill="none" stroke="${c}" stroke-width="1.5"/><path d="M7 21V12a6 6 0 0 1 12 0v9" fill="none" stroke="${c}" stroke-width="1.5"/><path d="M13 6.5V21" stroke="#9dbbff" stroke-width="1.5"/></svg>`;
 const ARR = '<span class="arr" aria-hidden="true">→</span>';
@@ -191,6 +191,19 @@ pages.home = (lang) => {
       <div class="ctas" style="margin-top:0"><a class="btn" href="/studio/">${ko ? "Studio Demo 열기" : "Open the Studio Demo"} ${ARR}</a><a class="btn ghost" href="/studio/#/bridge">${ko ? "모델하우스 크게 보기" : "Full model house"}</a></div>
       <p class="honest">${ko ? "이 화면은 브라우저 안에서 돌아가는 시뮬레이션입니다. 실제 AI 호출이나 고객 데이터를 쓰지 않으며, 실제 AI 실행은 별도 설정이 있을 때만 켜집니다." : "This is a simulation running in your browser. It makes no real AI calls and uses no client data; live AI execution is enabled only with separate configuration."}</p></div>
   </div>
+</div></section>
+
+<section class="room" data-room aria-labelledby="h-room"><div class="room-pin">
+  <div class="room-head wrap"><p class="kicker">${ko ? "AI 작업실" : "The AI workroom"}</p><h2 class="h2" id="h-room">${ko ? "AI들이 일하는 방으로,<br>직접 들어가 보세요." : "Step inside the room<br>where the AI works."}</h2></div>
+  <a class="room-win" href="/studio/#/bridge" data-room-go aria-label="${ko ? "AI 작업실 입장 — 3D 라운지 시뮬레이션 열기" : "Enter the AI workroom — open the 3D lounge simulation"}">
+    <img src="/assets/room.webp" srcset="/assets/room-1200.webp 1200w, /assets/room.webp 2400w" sizes="100vw" width="2400" height="1500" loading="lazy" decoding="async" alt="${ko ? "고층 라운지의 3D 작업실. 번호가 붙은 책상과 자료실·승인 데스크 사이를 AI 캐릭터들이 오간다." : "A 3D workroom in a high-rise lounge, with numbered desks, a library and an approval desk between which AI characters move."}">
+    <span class="room-ui" aria-hidden="true">
+      <span class="room-chip">${ko ? "시뮬레이션 · 가상 데이터" : "Simulation · synthetic data"}</span>
+      <span class="room-title"><b>${ko ? "AI 작업실" : "AI workroom"}</b><span>${ko ? "60F 라운지 · 3D · 직접 조작" : "60F lounge · 3D · interactive"}</span></span>
+      <span class="room-cta">${ko ? "작업실 입장" : "Enter the room"} <i>→</i></span>
+    </span>
+  </a>
+  <ul class="room-notes wrap" aria-label="${ko ? "작업실에서 할 수 있는 것" : "In the room"}">${(ko ? [["따라가기", "AI 하나를 눌러 카메라로 따라갑니다"], ["시점", "전경 · 책상 · 창가 · 위에서"], ["사고 넣기", "실패와 복구를 직접 일으켜 봅니다"]] : [["Follow", "tap an AI and the camera follows it"], ["Views", "overview · desk · window · top"], ["Inject a fault", "trigger a failure and watch the recovery"]]).map(([b, t]) => `<li><b>${b}</b><span>${t}</span></li>`).join("")}</ul>
 </div></section>
 
 <section class="sec" aria-labelledby="h-ind"><div class="wrap">
