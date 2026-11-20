@@ -5,7 +5,11 @@ const ko = document.documentElement.lang !== "en";
 
 // ── 헤더: 어두운 첫 화면 위에서는 밝은 글자, 내려가면 바탕색 ──
 const top = $("#top"), firstDark = $(".hero, .page-head");
-const onScroll = () => { if (!top) return; const past = !firstDark || scrollY > firstDark.offsetHeight - 80; top.classList.toggle("on-dark", !past); top.classList.toggle("scrolled", past && scrollY > 8); };
+const darkSecs = $$(".mani, .finale, .reel, .strip, .sec.dark, .foot");
+const onScroll = () => {
+  if (!top) return; const past = !firstDark || scrollY > firstDark.offsetHeight - 80; top.classList.toggle("on-dark", !past); top.classList.toggle("scrolled", past && scrollY > 8);
+  const y = top.offsetHeight / 2; top.classList.toggle("dk", past && darkSecs.some((s) => { const r = s.getBoundingClientRect(); return r.top <= y && r.bottom > y; }));
+};
 addEventListener("scroll", onScroll, { passive: true }); onScroll();
 const menu = $(".menu");
 if (menu) { menu.addEventListener("click", (e) => { if (e.target.closest("a")) menu.open = false; }); addEventListener("keydown", (e) => { if (e.key === "Escape" && menu.open) { menu.open = false; $("summary", menu).focus(); } }); }
@@ -136,3 +140,87 @@ if (form) {
     busy = false; btn.disabled = false; btn.innerHTML = label;
   });
 }
+
+// ── 시네마틱: 진행선 · 오프닝 · 원근 광선 · 선언문 · 수치 · 자석 버튼 ──
+const prog = $(".prog");
+const cine = $("[data-cine]"), mani = $("[data-mani]");
+const words = mani ? $$(".w", mani) : [];
+let counted = false;
+const countUp = () => {
+  if (counted) return; counted = true;
+  $$("[data-count]", mani).forEach((b, i) => {
+    const n = +b.dataset.count; if (reduce) return;
+    const t0 = performance.now() + i * 120; b.textContent = "0";
+    const f = (t) => { const k = Math.min(1, Math.max(0, (t - t0) / 1100)); b.textContent = String(Math.round(n * (1 - Math.pow(1 - k, 3)))); if (k < 1) requestAnimationFrame(f); };
+    requestAnimationFrame(f);
+  });
+};
+const onScrollCine = () => {
+  const H = document.documentElement.scrollHeight - innerHeight;
+  prog?.style.setProperty("--sp", (H > 0 ? scrollY / H : 0).toFixed(4));
+  if (cine && !reduce) cine.style.setProperty("--hp", Math.min(1, Math.max(0, scrollY / (cine.offsetHeight * 0.9))).toFixed(3));
+  if (mani) {
+    const r = mani.getBoundingClientRect(), span = mani.offsetHeight - innerHeight, p = reduce ? 1 : Math.min(1, Math.max(0, -r.top / Math.max(1, span)));
+    mani.style.setProperty("--mp", p.toFixed(3));
+    const lit = Math.round(p * 1.25 * words.length);
+    words.forEach((w, i) => w.classList.toggle("on", i < lit));
+    const done = lit >= words.length; mani.classList.toggle("done", done); if (done) countUp();
+  }
+};
+addEventListener("scroll", onScrollCine, { passive: true }); addEventListener("resize", onScrollCine); onScrollCine();
+
+if (cine) {
+  requestAnimationFrame(() => requestAnimationFrame(() => cine.classList.add("rolled")));
+  // 원근 바닥 격자 — 바깥의 빛이 소실점 하나로 모인다(흩어진 업무가 하나의 흐름으로)
+  const cv = $(".hero-fx", cine), g = cv?.getContext("2d");
+  if (g) {
+    let W = 0, Hh = 0, dpr = 1, mx = 0, my = 0, tx = 0, ty = 0, vis = true, t = 0, last = performance.now(), raf = 0;
+    const N = 22, pulses = Array.from({ length: innerWidth < 700 ? 6 : 12 }, () => ({ l: 0, z: 1, s: 0.06 + Math.random() * 0.1 }));
+    const size = () => { dpr = Math.min(2, devicePixelRatio || 1); W = cine.clientWidth; Hh = cine.clientHeight; cv.width = W * dpr; cv.height = Hh * dpr; g.setTransform(dpr, 0, 0, dpr, 0, 0); };
+    const draw = (now) => {
+      const dt = Math.min(0.05, (now - last) / 1000); last = now; t += dt;
+      tx += (mx - tx) * 0.04; ty += (my - ty) * 0.04;
+      g.clearRect(0, 0, W, Hh);
+      const hy = Hh * (0.36 + ty * 0.03), vx = W * (0.66 - tx * 0.05), depth = Hh - hy, spread = W * 2.4;
+      const hz = g.createLinearGradient(0, hy - 60, 0, hy + 40); hz.addColorStop(0, "rgba(43,89,224,0)"); hz.addColorStop(0.6, "rgba(43,89,224,.16)"); hz.addColorStop(1, "rgba(43,89,224,0)");
+      g.fillStyle = hz; g.fillRect(0, hy - 60, W, 100);
+      g.lineWidth = 1; g.strokeStyle = "rgba(157,187,255,.28)"; g.beginPath(); g.moveTo(0, hy); g.lineTo(W, hy); g.stroke();
+      for (let i = -N; i <= N; i++) {
+        const bx = vx + (i / N) * spread, a = 0.05 + 0.1 * (1 - Math.abs(i) / N);
+        const gr = g.createLinearGradient(vx, hy, bx, Hh); gr.addColorStop(0, "rgba(157,187,255,0)"); gr.addColorStop(1, `rgba(157,187,255,${a.toFixed(3)})`);
+        g.strokeStyle = gr; g.beginPath(); g.moveTo(vx, hy); g.lineTo(bx, Hh); g.stroke();
+      }
+      for (let k = 0; k < 16; k++) {
+        const z = (k + ((t * 0.35) % 1)) / 16, y = hy + depth * Math.pow(z, 2.2);
+        g.strokeStyle = `rgba(157,187,255,${(0.02 + z * 0.13).toFixed(3)})`; g.beginPath(); g.moveTo(0, y); g.lineTo(W, y); g.stroke();
+      }
+      for (const p of pulses) {
+        if (!p.l) { p.l = Math.floor(Math.random() * (2 * N + 1)) - N || 1; p.z = 1 + Math.random() * 0.6; }
+        p.z -= p.s * dt * 2.2; if (p.z <= 0.02) { p.l = 0; continue; }
+        const zz = Math.min(1, p.z), bx = vx + (p.l / N) * spread, e = Math.pow(zz, 2.2), x = vx + (bx - vx) * e, y = hy + depth * e;
+        const e2 = Math.pow(Math.min(1, zz + 0.12), 2.2), x2 = vx + (bx - vx) * e2, y2 = hy + depth * e2;
+        const tr = g.createLinearGradient(x2, y2, x, y); tr.addColorStop(0, "rgba(157,187,255,0)"); tr.addColorStop(1, `rgba(220,232,255,${(0.16 + zz * 0.42).toFixed(2)})`);
+        g.strokeStyle = tr; g.lineWidth = 1 + zz * 1.1; g.beginPath(); g.moveTo(x2, y2); g.lineTo(x, y); g.stroke(); g.lineWidth = 1;
+      }
+      const core = g.createRadialGradient(vx, hy, 0, vx, hy, 180); core.addColorStop(0, "rgba(157,187,255,.22)"); core.addColorStop(1, "rgba(157,187,255,0)");
+      g.fillStyle = core; g.fillRect(vx - 180, hy - 180, 360, 360);
+      raf = !reduce && vis && !document.hidden ? requestAnimationFrame(draw) : 0;
+    };
+    const kick = () => { if (!raf && !reduce && vis && !document.hidden) { last = performance.now(); raf = requestAnimationFrame(draw); } };
+    size();
+    new ResizeObserver(() => { size(); if (reduce || !raf) draw(performance.now()); }).observe(cine);
+    if (reduce) draw(performance.now());
+    else {
+      kick();
+      new IntersectionObserver(([e]) => { vis = e.isIntersecting; kick(); }).observe(cine);
+      document.addEventListener("visibilitychange", kick);
+      cine.addEventListener("pointermove", (e) => { const r = cine.getBoundingClientRect(); mx = (e.clientX - r.left) / r.width - 0.5; my = (e.clientY - r.top) / r.height - 0.5; }, { passive: true });
+    }
+  }
+}
+
+// 자석 버튼 — 커서 쪽으로 살짝 끌린다
+if (!reduce && matchMedia("(hover: hover)").matches) $$("[data-magnet]").forEach((b) => {
+  b.addEventListener("pointermove", (e) => { const r = b.getBoundingClientRect(); b.style.transform = `translate(${((e.clientX - r.left - r.width / 2) * 0.18).toFixed(1)}px, ${((e.clientY - r.top - r.height / 2) * 0.28).toFixed(1)}px)`; });
+  b.addEventListener("pointerleave", () => (b.style.transform = ""));
+});
