@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 import { ORG, SERVICES, METHOD, WORK, PAINS, BA, DIFF, INDUSTRIES, FOUNDER, FAQ, POSTS, TOPICS } from "./content.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url)), ROOT = join(HERE, "..", "public");
-const V = "3"; // 정적 자산 캐시 버전
+const V = "4"; // 정적 자산 캐시 버전
 const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const MARK = (c = "currentColor") => `<svg viewBox="0 0 26 26" aria-hidden="true"><rect x="1" y="1" width="24" height="24" rx="6" fill="none" stroke="${c}" stroke-width="1.5"/><path d="M7 21V12a6 6 0 0 1 12 0v9" fill="none" stroke="${c}" stroke-width="1.5"/><path d="M13 6.5V21" stroke="#9dbbff" stroke-width="1.5"/></svg>`;
 const ARR = '<span class="arr" aria-hidden="true">→</span>';
@@ -56,6 +56,7 @@ ${noindex ? '<meta name="robots" content="noindex">' : `<link rel="canonical" hr
 ${ld}
 </head>
 <body>
+<div class="prog" aria-hidden="true"></div>
 <a class="skip" href="#main">${t.skip}</a>
 <header class="top${dark ? " on-dark" : ""}" id="top"><div class="wrap">
   <a class="brand" href="${path(lang, "")}" aria-label="${lang === "ko" ? ORG.nameKo : ORG.nameEn}">${MARK()}<span>Atelier AX</span></a>
@@ -121,17 +122,30 @@ pages.home = (lang) => {
   return layout({ lang, page: "", title: ko ? "아뜰리에 AX — 업무를 다시 설계하고, 작동하는 AI까지" : "Atelier AX — Redesign the work. Ship AI that runs.",
     desc: ko ? "아뜰리에 AX는 기업의 업무를 진단하고 AI와 자동화를 결합해 실제로 운영할 수 있는 시스템으로 구현하는 서울의 독립 AX 컨설팅 스튜디오입니다." : "Atelier AX is an independent AX consulting studio in Seoul that diagnoses how work is done and builds AI and automation into systems that actually run.",
     body: `
-<section class="hero"><div class="wrap">
+<section class="hero cine" data-cine>
+  <canvas class="hero-fx" aria-hidden="true"></canvas><div class="grain" aria-hidden="true"></div><span class="lb t" aria-hidden="true"></span><span class="lb b" aria-hidden="true"></span>
+  <div class="wrap">
   <div>
-    <p class="kicker">${ko ? "독립 AX 컨설팅 스튜디오 · 서울" : "Independent AX consulting studio · Seoul"}</p>
-    <h1 class="display">${ko ? "업무를 다시 설계하고,<br><span class=\"grad\">작동하는 AI까지.</span>" : "Redesign the work.<br><span class=\"grad\">Ship AI that runs.</span>"}</h1>
-    <p class="lede">${ko ? "아뜰리에 AX는 기업의 업무를 진단하고, AI와 자동화를 결합해 실제로 운영할 수 있는 시스템으로 구현하는 독립 AX 컨설팅 스튜디오입니다." : "Atelier AX is an independent AX consulting studio. We diagnose how your work is done, then combine AI and automation into systems your team can actually run."}</p>
-    <p class="motto">${ko ? "기획한 사람이 만들고, 만든 사람이 설명합니다." : "The person who designs it builds it — and explains it."}</p>
-    <div class="ctas"><a class="btn" href="${path(lang, "contact")}" data-magnet>${ko ? "상담 신청하기" : "Start a conversation"} ${ARR}</a><a class="btn ghost" href="/studio/">${ko ? "Studio Demo 보기" : "See the Studio Demo"}</a></div>
+    <p class="kicker" data-rise style="--d:.55s">${ko ? "독립 AX 컨설팅 스튜디오 · 서울" : "Independent AX consulting studio · Seoul"}</p>
+    <h1 class="display">${(ko ? ["업무를 다시", "설계하고,", "<span class=\"grad\">작동하는 AI까지.</span>"] : ["Redesign the work.", "<span class=\"grad\">Ship AI that runs.</span>"]).map((l, i) => `<span class="ln"><span style="--d:${(0.7 + i * 0.14).toFixed(2)}s">${l}</span></span>`).join("")}</h1>
+    <p class="lede" data-rise style="--d:1.25s">${ko ? "아뜰리에 AX는 기업의 업무를 진단하고, AI와 자동화를 결합해 실제로 운영할 수 있는 시스템으로 구현하는 독립 AX 컨설팅 스튜디오입니다." : "Atelier AX is an independent AX consulting studio. We diagnose how your work is done, then combine AI and automation into systems your team can actually run."}</p>
+    <p class="motto" data-rise style="--d:1.4s">${ko ? "기획한 사람이 만들고, 만든 사람이 설명합니다." : "The person who designs it builds it — and explains it."}</p>
+    <div class="ctas" data-rise style="--d:1.55s"><a class="btn" href="${path(lang, "contact")}" data-magnet>${ko ? "상담 신청하기" : "Start a conversation"} ${ARR}</a><a class="btn ghost" href="/studio/">${ko ? "Studio Demo 보기" : "See the Studio Demo"}</a></div>
   </div>
-  ${flowSVG(ko)}
-</div></section>
+  <div data-rise style="--d:1.1s">${flowSVG(ko)}</div>
+</div>
+  <a class="cue" href="#reel" data-rise style="--d:2s"><i aria-hidden="true"></i>${ko ? "스크롤" : "Scroll"}</a>
+</section>
 <section class="strip" aria-label="${ko ? "서비스 요약" : "Services at a glance"}"><div class="wrap"><ul>${SERVICES.map((s) => `<li><b>${svcName(s, lang)}</b>${ko ? s.k.short : s.e.short}</li>`).join("")}</ul></div></section>
+
+<section class="reel" id="reel" aria-label="${ko ? "하는 일" : "What we do"}"><div class="reel-track">${[0, 1].map((k) => `<ul${k ? ' aria-hidden="true"' : ""}>${(ko ? ['업무 진단', '프로세스 재설계', '워크플로 자동화', 'AI 에이전트', '사람의 승인 관문', '검증 기록', '운영과 개선'] : ['Process diagnosis', 'Workflow redesign', 'Automation', 'AI agents', 'Human approval gates', 'Verified records', 'Operate & improve']).map((x) => `<li>${x}</li>`).join("")}</ul>`).join("")}</div></section>
+
+<section class="mani" data-mani aria-labelledby="h-mani"><div class="mani-pin"><div class="wrap">
+  <p class="kicker">${ko ? "관점" : "Point of view"}</p>
+  <h2 class="mani-t" id="h-mani">${(ko ? "흩어진 메일과 엑셀, 반복되는 확인과 전달. 그 사이에서 사라지는 시간을 *하나의 *흐름으로 다시 설계합니다. *AI는 *실행하고, *사람은 *승인하며, 모든 단계가 *기록으로 남습니다." : "Scattered emails and spreadsheets, endless checking and handing over. We redesign the time lost in between into *one *flow. *AI *executes, *people *approve, and every step stays *on *record.").split(" ").map((w) => `<span class="w${w.startsWith("*") ? " em" : ""}">${w.replace(/^\*/, "")}</span>`).join(" ")}</h2>
+  <ul class="figs">${(ko ? [["4", "서비스 영역"], ["6", "단계로 나눈 업무 흐름"], ["4", "사람이 승인하는 관문"], ["1", "처음부터 끝까지 맡는 사람"]] : [["4", "service areas"], ["6", "stages in the workflow"], ["4", "human approval gates"], ["1", "person from start to finish"]]).map(([n, t]) => `<li><b data-count="${n}">${n}</b><span>${t}</span></li>`).join("")}</ul>
+  <p class="figs-note">${ko ? "6단계·4관문은 Studio Demo에서 확인할 수 있는 업무 구조입니다." : "The six stages and four gates are the workflow structure you can inspect in the Studio Demo."}</p>
+</div></div></section>
 
 <section class="sec" aria-labelledby="h-pain"><div class="wrap">
   ${head(ko ? "문제" : "The problem", ko ? "AI 도구는 늘었는데, 일하는 방식은 그대로입니다" : "More AI tools. The same way of working.", "h-pain", ko ? "대부분의 비효율은 기술이 없어서가 아니라, 업무가 끊긴 채 사람 손으로 이어지기 때문에 생깁니다." : "Most inefficiency is not a lack of technology. It comes from work that is broken into pieces and stitched together by hand.")}
@@ -196,7 +210,13 @@ pages.home = (lang) => {
 <section class="sec" aria-labelledby="h-start"><div class="wrap">
   ${head(ko ? "시작하는 방법" : "How to start", ko ? "정리된 기획서가 없어도 됩니다" : "No formal brief required", "h-start")}
   <ol class="steps4">${(ko ? [["문의", "해결하고 싶은 업무를 짧게 적어 보내 주세요."], ["첫 대화", "현재 흐름과 목표를 함께 확인합니다."], ["범위와 제안", "범위·일정·산출물을 제안드립니다."], ["착수", "작은 과제부터 시작해 단계마다 결과를 봅니다."]] : [["Enquiry", "Send a short note about the work you want to change."], ["First conversation", "We look at the current flow and the goal together."], ["Scope & proposal", "We propose scope, schedule and deliverables."], ["Start", "We begin small and review results at every stage."]]).map(([b, s]) => `<li data-reveal><b>${b}</b><span>${s}</span></li>`).join("")}</ol>
-  <div class="band" style="margin-top:clamp(56px,7vw,96px)" data-reveal><div><h2 class="h2">${ko ? "우리 조직의 문제를 한번 설명해 보세요." : "Tell us about the problem in your organisation."}</h2><p>${ko ? "지금 어떻게 일하는지, 무엇이 불편한지만 적어 주시면 됩니다. 내용을 확인한 뒤 대표가 직접 회신드립니다." : "Just describe how the work is done today and what gets in the way. The founder will reply personally."}</p></div><a class="btn light" href="${path(lang, "contact")}" data-magnet>${ko ? "상담 신청하기" : "Start a conversation"} ${ARR}</a></div>
+</div></section>
+<section class="finale" aria-labelledby="h-fin"><div class="grain" aria-hidden="true"></div><div class="wrap">
+  <p class="kicker">${ko ? "다음 장면" : "Next scene"}</p>
+  <h2 class="display" id="h-fin" data-reveal="mask">${ko ? "다음 장면은,<br><span class=\"grad\">당신의 업무입니다.</span>" : "The next scene<br><span class=\"grad\">is your work.</span>"}</h2>
+  <p class="lede" data-reveal>${ko ? "지금 어떻게 일하는지, 무엇이 불편한지만 적어 주시면 됩니다. 내용을 확인한 뒤 대표가 직접 회신드립니다." : "Just describe how the work is done today and what gets in the way. The founder will reply personally."}</p>
+  <div class="ctas" data-reveal><a class="btn light" href="${path(lang, "contact")}" data-magnet>${ko ? "상담 신청하기" : "Start a conversation"} ${ARR}</a><a class="btn ghost" href="/studio/">${ko ? "Studio Demo 보기" : "See the Studio Demo"}</a></div>
+  <dl class="credits" data-reveal>${(ko ? [["진단", "업무 흐름 · 병목"], ["설계", "사람과 AI의 역할"], ["구현", "자동화 · AI 개발"], ["운영", "승인 · 기록 · 개선"]] : [["Diagnose", "flow · bottlenecks"], ["Design", "roles for people & AI"], ["Build", "automation · AI software"], ["Operate", "approval · records · improvement"]]).map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join("")}</dl>
 </div></section>` });
 };
 
