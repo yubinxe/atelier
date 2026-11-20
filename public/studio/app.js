@@ -592,7 +592,7 @@ async function mountLounge() {
   BUI.lounge?.destroy(); BUI.lounge = null;
   const box = $("#lounge"); if (!box) return;
   try {
-    const { mountLounge: mount } = await import("./lounge.bundle.js?v=2");
+    const { mountLounge: mount } = await import("./lounge.bundle.js?v=3");
     if (!box.isConnected) return;
     box.innerHTML = "";
     BUI.lounge = mount(box, { reduce, view: prefs.lgView || "overview", showLabels: prefs.lgLabels !== false, labels: { focus: "집중 시간", done: "완료", recover: "실패 → 복구", sim: "시뮬레이션 · 가상 데이터", approve: "승인 데스크" } });

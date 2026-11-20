@@ -4,6 +4,7 @@
 - 실적·고객·가격·후기·인원·자격은 확인된 것만. 개인 프로젝트·재직 기업 업무·회사 실적을 섞지 않는다. 문의 저장 = `api/contact.js` → Supabase `atelier_leads`(`supabase/atelier_leads.sql`).
 - 스튜디오 = `public/studio/` (model.js 순수 로직 · board.js 진행 보드 SVG · app.js 화면 · studio.css). 실제 AI = `api/studio/*` · 작업 브리지 = `api/bridge/*` + `public/studio/bridge.js` + `connectors/` · 모델하우스(키 없는 시뮬) = `public/studio/sim.js` + `floor.js`(키는 서버 환경변수만). 바꾸면 `npm test` 통과 + index.html 의 `?v=` 올리기.
 - 시연 결과는 반드시 ‘가상’ 표기, 미실행 검사는 ‘미검증’. 연결 안 된 외부 서비스를 연결된 것처럼 쓰지 않는다.
-- 프로덕션 직접 배포 금지 — Preview 확인 후 승인받아 promote.
+- 머지·배포 상시 승인(사용자 지시): 작업 끝 → `npm test` + 화면 검수 → PR → Vercel Preview 성공 확인 → 묻지 말고 바로 머지 → 프로덕션 확인. 직접 main 푸시는 금지. 데이터 삭제·키·유료 계약만 따로 묻는다.
+- 마감 기준: 기능 구현 뒤 반드시 최종 가공 1회(타이포·간격·움직임·모바일·빈/로딩/오류 상태) — 게임·인터랙션은 게임사 수준의 손맛(이징, 피드백, 사운드 없는 시각 피드백)까지.
 - 기존 관제 원본 소스(Next.js, roster.json, Hermes 백엔드)는 이 저장소에 없음. 원본이 생기면 이 정적 사본을 대체.
 - 응답은 짧게: 결론 먼저, 바뀐 부분만, 설명은 요청 시(전체 규칙 `tools/token-kit/RULES.md`, Hermes 도 이 파일을 읽는다).

@@ -505,5 +505,17 @@ ol.evlist { list-style: none; margin: 0; padding: 4px 18px 14px; display: grid; 
 .lg-bar button { border: 0; background: transparent; color: #c9d2e6; font: 600 13px var(--sans); padding: 0 14px; min-height: 36px; border-radius: 999px; cursor: pointer; }
 .lg-bar button[aria-pressed="true"] { background: #fff; color: #15171c; }
 .lg-bar button:focus-visible { outline: 2px solid #9dbbff; outline-offset: 2px; }
+.lg-tag { pointer-events: auto; cursor: pointer; transition: filter .2s; } .lg-tag:hover { filter: brightness(1.08); }
+.lg-emo { position: absolute; left: 0; top: 0; z-index: 150; display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; font: 800 13px/1 var(--sans); font-style: normal; color: #fff; background: #3d4a66; box-shadow: 0 0 0 2px rgba(7, 11, 22, .85), 0 6px 14px -6px rgba(0,0,0,.7); will-change: transform; }
+.lg-emo.fail { background: #ff4d40; } .lg-emo.done { background: #2fa36b; } .lg-emo.wait { background: #f2c14e; color: #15171c; }
+.lg-emo.pop { animation: lgPop .5s cubic-bezier(.2, 1.6, .4, 1); }
+@keyframes lgPop { 0% { scale: .2; } 60% { scale: 1.25; } 100% { scale: 1; } }
+.lg-float { position: absolute; left: 0; top: 0; z-index: 200; font: 750 14px/1 var(--sans); font-style: normal; letter-spacing: -.01em; color: #fff; padding: 6px 10px; border-radius: 999px; white-space: nowrap; opacity: 0; will-change: transform, opacity; }
+.lg-float.ok { background: #1f7a4d; box-shadow: 0 0 0 1px rgba(95, 227, 155, .5), 0 10px 24px -10px rgba(31, 122, 77, .9); }
+.lg-float.bad { background: #d6453b; box-shadow: 0 0 0 1px rgba(255, 140, 130, .5), 0 10px 24px -10px rgba(214, 69, 59, .9); }
+.lg-follow { position: absolute; left: 12px; top: 58px; display: flex; align-items: center; gap: 10px; padding: 5px 5px 5px 12px; font: 600 12.5px var(--sans); color: #fff; background: rgba(10, 17, 34, .82); border: 1px solid rgba(200, 162, 74, .55); border-radius: 999px; backdrop-filter: blur(6px); opacity: 0; transform: translateY(-4px); pointer-events: none; transition: opacity .25s, transform .25s; }
+.lg-follow.on { opacity: 1; transform: none; pointer-events: auto; }
+.lg-follow button { border: 0; background: #fff; color: #15171c; font: 650 12px var(--sans); min-height: 28px; padding: 0 12px; border-radius: 999px; cursor: pointer; }
+@media (max-width: 680px) { .lg-follow { top: 50px; left: 8px; } }
 @media (max-width: 680px) { .lounge { aspect-ratio: 3 / 4; } .lg-tag span { max-width: 150px; font-size: 11px; } .lg-bar { flex-wrap: nowrap; gap: 2px; padding: 4px; bottom: 8px; max-width: calc(100% - 16px); } .lg-bar button { padding: 0 9px; font-size: 12px; min-height: 32px; white-space: nowrap; } .lg-top { top: 8px; left: 8px; right: 8px; } }
-@media (prefers-reduced-motion: reduce) { .lg-cast { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .lg-cast, .lg-follow { transition: none; } .lg-emo.pop { animation: none; } }
