@@ -5,7 +5,7 @@ const ko = document.documentElement.lang !== "en";
 
 // ── 헤더: 어두운 첫 화면 위에서는 밝은 글자, 내려가면 바탕색 ──
 const top = $("#top"), firstDark = $(".hero, .page-head");
-const darkSecs = $$(".mani, .finale, .reel, .strip, .sec.dark, .foot");
+const darkSecs = $$(".mani, .room, .finale, .reel, .strip, .sec.dark, .foot");
 const onScroll = () => {
   if (!top) return; const past = !firstDark || scrollY > firstDark.offsetHeight - 80; top.classList.toggle("on-dark", !past); top.classList.toggle("scrolled", past && scrollY > 8);
   const y = top.offsetHeight / 2; top.classList.toggle("dk", past && darkSecs.some((s) => { const r = s.getBoundingClientRect(); return r.top <= y && r.bottom > y; }));
@@ -224,3 +224,18 @@ if (!reduce && matchMedia("(hover: hover)").matches) $$("[data-magnet]").forEach
   b.addEventListener("pointermove", (e) => { const r = b.getBoundingClientRect(); b.style.transform = `translate(${((e.clientX - r.left - r.width / 2) * 0.18).toFixed(1)}px, ${((e.clientY - r.top - r.height / 2) * 0.28).toFixed(1)}px)`; });
   b.addEventListener("pointerleave", () => (b.style.transform = ""));
 });
+
+// AI 작업실 — 스크롤하면 창이 화면 가득 열리고, 누르면 확대되며 입장한다
+const room = $("[data-room]");
+if (room) {
+  const veil = document.createElement("div"); veil.className = "room-veil"; room.append(veil);
+  const upd = () => { if (reduce) return; const r = room.getBoundingClientRect(), span = room.offsetHeight - innerHeight; const p = Math.min(1, Math.max(0, -r.top / Math.max(1, span * 0.8))); room.style.setProperty("--rp", (1 - Math.pow(1 - p, 2.2)).toFixed(4)); };
+  addEventListener("scroll", upd, { passive: true }); addEventListener("resize", upd); upd();
+  $("[data-room-go]", room)?.addEventListener("click", (e) => {
+    if (reduce || e.metaKey || e.ctrlKey || e.shiftKey || e.button) return;
+    e.preventDefault(); const href = e.currentTarget.href;
+    room.style.setProperty("--rp", "1"); room.classList.add("go");
+    setTimeout(() => (location.href = href), 760);
+  });
+  addEventListener("pageshow", () => room.classList.remove("go"));
+}
