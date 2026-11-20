@@ -483,3 +483,27 @@ ol.evlist { list-style: none; margin: 0; padding: 4px 18px 14px; display: grid; 
 /* v8 — Atelier AX 브랜드 헤더 */
 .logo { color: #15171c; align-items: center; gap: 9px; } .logo span { font: 640 17px/1 var(--sans) !important; letter-spacing: -0.02em; color: #15171c; }
 .logo small { font: 500 11px var(--mono) !important; letter-spacing: .06em; color: #7a6234 !important; border-left: 1px solid var(--rule2); padding-left: 9px; }
+
+/* v9 — 3D AI 라운지 */
+.lounge-box { position: relative; padding: 0; overflow: hidden; background: #070b16; border-color: #1c2440; min-height: 0; }
+.lounge { position: relative; width: 100%; aspect-ratio: 16 / 9.4; max-height: 640px; cursor: grab; }
+.lounge:active { cursor: grabbing; }
+.lounge canvas { display: block; width: 100% !important; height: 100% !important; }
+.lg-load { position: absolute; inset: 0; display: grid; place-items: center; margin: 0; color: #aeb8cc; font-size: 14px; }
+.lg-labels { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.lg-tag { position: absolute; left: 0; top: 0; display: grid; gap: 3px; justify-items: center; white-space: nowrap; will-change: transform; }
+.lg-tag b { font: 650 11.5px/1 var(--sans); color: #fff; background: rgba(10, 17, 34, .78); border: 1px solid rgba(255,255,255,.18); padding: 5px 9px; border-radius: 999px; }
+.lg-tag span { font: 600 12px/1.25 var(--sans); color: #15171c; background: #fff; padding: 6px 11px; border-radius: 10px; box-shadow: 0 6px 18px -8px rgba(0,0,0,.6); max-width: 220px; overflow: hidden; text-overflow: ellipsis; }
+.lg-tag.blue b { border-color: #3d6bff; } .lg-tag.yellow b { border-color: #e8b23a; } .lg-tag.green b { border-color: #2fa36b; } .lg-tag.red b { border-color: #e5584a; }
+.lg-tag.fail span { background: #ff4d40; color: #fff; } .lg-tag.done span { background: #2fa36b; color: #fff; } .lg-tag.wait span { background: #f2c14e; }
+.lg-top { position: absolute; top: 12px; left: 12px; right: 12px; display: flex; gap: 8px; align-items: center; pointer-events: none; flex-wrap: wrap; }
+.lg-chip { font: 500 13px var(--sans); color: #dfe6f5; background: rgba(10, 17, 34, .72); border: 1px solid rgba(255,255,255,.12); padding: 7px 12px; border-radius: 10px; backdrop-filter: blur(6px); }
+.lg-chip b { color: #fff; font-weight: 700; margin-right: 6px; }
+.lg-cast { margin: 0 auto; font: 650 13px var(--sans); color: #fff; background: #d6453b; padding: 8px 14px; border-radius: 999px; opacity: 0; transform: translateY(-6px); transition: opacity .4s, transform .4s; box-shadow: 0 8px 24px -10px rgba(214, 69, 59, .8); }
+.lg-cast.on { opacity: 1; transform: none; } .lg-cast.done, .lg-cast.test { background: #1f7a4d; box-shadow: 0 8px 24px -10px rgba(31, 122, 77, .8); }
+.lg-bar { position: absolute; left: 50%; bottom: 12px; transform: translateX(-50%); display: flex; gap: 6px; padding: 6px; background: rgba(10, 17, 34, .78); border: 1px solid rgba(255,255,255,.12); border-radius: 999px; backdrop-filter: blur(6px); flex-wrap: wrap; justify-content: center; max-width: calc(100% - 24px); }
+.lg-bar button { border: 0; background: transparent; color: #c9d2e6; font: 600 13px var(--sans); padding: 0 14px; min-height: 36px; border-radius: 999px; cursor: pointer; }
+.lg-bar button[aria-pressed="true"] { background: #fff; color: #15171c; }
+.lg-bar button:focus-visible { outline: 2px solid #9dbbff; outline-offset: 2px; }
+@media (max-width: 680px) { .lounge { aspect-ratio: 3 / 4; } .lg-tag span { max-width: 150px; font-size: 11px; } .lg-bar { flex-wrap: nowrap; gap: 2px; padding: 4px; bottom: 8px; max-width: calc(100% - 16px); } .lg-bar button { padding: 0 9px; font-size: 12px; min-height: 32px; white-space: nowrap; } .lg-top { top: 8px; left: 8px; right: 8px; } }
+@media (prefers-reduced-motion: reduce) { .lg-cast { transition: none; } }

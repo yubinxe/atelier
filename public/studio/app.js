@@ -121,6 +121,7 @@ const app = $("#app");
 let timer = null;
 function route() {
   clearInterval(timer); timer = null; clearInterval(btimer); btimer = null;
+  if (location.hash.split("/")[1] !== "bridge") { BUI.lounge?.destroy(); BUI.lounge = null; }
   const [, a, id, tab] = location.hash.split("/");
   if (a === "p" && find(id)) project(find(id), tab || "flow");
   else if (a === "live") live();
@@ -521,7 +522,10 @@ function live() {
 // ── AI 작업 모델하우스 / 브리지 — 기본은 더미 각본 시뮬레이션, 서버가 준비되면 실제 연결도 같은 화면으로 ──
 let btimer = null;
 const clock = (t) => { const d = new Date(t), p = (n) => String(n).padStart(2, "0"); return `${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`; };
-const BUI = { open: new Set(), data: null, err: "", sim: null, speed: Number(prefs.simSpeed) || 1, playing: !reduce, mode: prefs.bmode === "real" ? "real" : "sim", prevSt: {} };
+const BUI = { open: new Set(), data: null, err: "", sim: null, speed: Number(prefs.simSpeed) || 1, playing: !reduce, mode: prefs.bmode === "real" ? "real" : "sim", prevSt: {}, lounge: null, cast: "" };
+const glOk = (() => { try { const c = document.createElement("canvas"); return !!(window.WebGLRenderingContext && (c.getContext("webgl2") || c.getContext("webgl"))); } catch { return false; } })();
+const use3d = () => glOk && prefs.v3d !== false;
+const LG_VIEWS = [["overview", "전경"], ["desk", "책상"], ["window", "창가"], ["top", "위에서"]];
 async function bridgeFetch() {
   try {
     const r = await fetch("/api/bridge/feed/", { cache: "no-store", headers: { "x-studio-code": prefs.code || "" } });
@@ -555,11 +559,15 @@ function drawShell() {
       <button class="btn sm" id="sPlay" aria-pressed="${BUI.playing}">${BUI.playing ? "일시정지" : "재생"}</button>
       <div class="toggle" role="radiogroup" aria-label="속도">${[1, 2, 4].map((v) => `<button type="button" role="radio" data-sp="${v}" aria-checked="${BUI.speed === v}">${v}×</button>`).join("")}</div>
       <button class="btn sm" id="sFail" title="일하는 AI 하나의 다음 검사를 실패시킵니다">사고 넣기</button><button class="btn sm ghost" id="sReset">처음부터</button>
+      ${glOk ? `<div class="toggle" role="radiogroup" aria-label="화면">${[["3d", "3D 라운지"], ["2d", "평면"]].map(([k, t]) => `<button type="button" role="radio" data-v3="${k}" aria-checked="${(k === "3d") === use3d()}">${t}</button>`).join("")}</div>` : ""}
       <span class="simclock" id="sClock" aria-live="off"></span></div>`
     : `<div class="simbar card"><span class="lstate ${BUI.data ? "on" : ""}" id="rState">${BUI.data ? "연결됨 · 3초마다 갱신" : esc(BUI.err || "확인 중…")}</span>
       ${/접근 코드/.test(BUI.err) || !prefs.code ? `<form id="bcode" class="inline"><label class="sr" for="bc">접근 코드</label><input id="bc" type="password" autocomplete="off" placeholder="접근 코드"><button class="btn sm primary">보기</button></form>` : ""}</div>`}
     <div class="bhud" id="bhud"></div>
-    <div class="mh"><section class="card floorbox" aria-label="모델하우스 평면">${FL.scene()}</section>
+    <div class="mh">${use3d() ? `<section class="card lounge-box" aria-label="AI 라운지 3D — 드래그로 돌리고 휠·두 손가락으로 확대"><div class="lounge" id="lounge"><p class="lg-load">3D 라운지를 불러오는 중…</p></div>
+        <div class="lg-top"><span class="lg-chip"><b>AI 라운지</b> 60F · 한강뷰</span><span class="lg-chip" id="lgCount">일하는 AI 0</span><span class="lg-cast" id="lgCast" aria-live="polite"></span></div>
+        <div class="lg-bar" role="toolbar" aria-label="라운지 시점">${LG_VIEWS.map(([k, t]) => `<button type="button" data-lgv="${k}" aria-pressed="${(prefs.lgView || "overview") === k}">${t}</button>`).join("")}<button type="button" id="lgLabels" aria-pressed="${prefs.lgLabels !== false}">지금 하는 일</button></div></section>`
+      : `<section class="card floorbox" aria-label="모델하우스 평면">${FL.scene()}</section>`}
       <aside class="card ticker" aria-label="방금 일어난 일"><h2 class="sh">방금 일어난 일</h2><ol id="tick"></ol></aside></div>
     <ul class="key bkey" aria-label="범례">${[["edit", "수정·산출물"], ["run", "실행·도구"], ["test", "검사"], ["read", "읽기·찾기·웹"], ["prompt", "지시·시작"], ["done", "완료"], ["fail", "실패"]].map(([k, t]) => `<li><svg viewBox="-9 -9 18 18" class="lane-svg" aria-hidden="true"><g class="ev ${k} ${BR.KIND[k][1]}">${BR.shape(k)}</g></svg>${t}</li>`).join("")}
       ${Object.entries(FL.SRC_STYLE).map(([k, [c, i]]) => `<li><span class="srcdot ${c}" aria-hidden="true">${i}</span>${esc(BR.srcName(k))}</li>`).join("")}</ul>
@@ -574,12 +582,28 @@ function drawShell() {
   $("#sPlay")?.addEventListener("click", (e) => { BUI.playing = !BUI.playing; e.currentTarget.setAttribute("aria-pressed", String(BUI.playing)); e.currentTarget.textContent = BUI.playing ? "일시정지" : "재생"; });
   $$("[data-sp]").forEach((b) => (b.onclick = () => { BUI.speed = prefs.simSpeed = Number(b.dataset.sp); savePrefs(); $$("[data-sp]").forEach((x) => x.setAttribute("aria-checked", String(x === b))); }));
   $("#sFail")?.addEventListener("click", () => { const who = SIM.injectFailure(BUI.sim); toast(who ? `${who}의 다음 검사가 실패합니다 — 복구 과정을 지켜보세요 (가상)` : "지금 실패시킬 작업이 없습니다", "warn"); });
-  $("#sReset")?.addEventListener("click", () => { BUI.sim = SIM.createSim({ seed: (Date.now() % 1e6) + 1 }); BUI.prevSt = {}; $(".pawns").innerHTML = ""; bupdate(); });
+  $("#sReset")?.addEventListener("click", () => { BUI.sim = SIM.createSim({ seed: (Date.now() % 1e6) + 1 }); BUI.prevSt = {}; if ($(".pawns")) $(".pawns").innerHTML = ""; bupdate(); });
+  $$("[data-v3]").forEach((b) => (b.onclick = () => { prefs.v3d = b.dataset.v3 === "3d"; savePrefs(); bridge(); }));
+  mountLounge();
   $("#bcode")?.addEventListener("submit", async (e) => { e.preventDefault(); prefs.code = $("#bc").value.trim(); savePrefs(); await bridgeFetch(); bridge(); });
+}
+// 3D 라운지 — three.js 묶음은 이 화면을 열 때만 불러온다
+async function mountLounge() {
+  BUI.lounge?.destroy(); BUI.lounge = null;
+  const box = $("#lounge"); if (!box) return;
+  try {
+    const { mountLounge: mount } = await import("./lounge.bundle.js?v=2");
+    if (!box.isConnected) return;
+    box.innerHTML = "";
+    BUI.lounge = mount(box, { reduce, view: prefs.lgView || "overview", showLabels: prefs.lgLabels !== false, labels: { focus: "집중 시간", done: "완료", recover: "실패 → 복구", sim: "시뮬레이션 · 가상 데이터", approve: "승인 데스크" } });
+    $$("[data-lgv]").forEach((b) => (b.onclick = () => { prefs.lgView = b.dataset.lgv; savePrefs(); BUI.lounge?.setView(b.dataset.lgv); $$("[data-lgv]").forEach((x) => x.setAttribute("aria-pressed", String(x === b))); }));
+    $("#lgLabels")?.addEventListener("click", (e) => { prefs.lgLabels = prefs.lgLabels === false; savePrefs(); BUI.lounge?.setLabels(prefs.lgLabels); e.currentTarget.setAttribute("aria-pressed", String(prefs.lgLabels)); });
+    bupdate();
+  } catch { box.innerHTML = '<p class="lg-load">3D 라운지를 열 수 없어 평면으로 보여 드립니다.</p>'; prefs.v3d = false; savePrefs(); setTimeout(bridge, 1200); }
 }
 function bupdate() {
   if (location.hash.split("/")[1] !== "bridge" || !$("#bhud")) return;
-  if (!$(".pawns")?.children.length) BUI.sig = "";
+  if ($(".pawns") && !$(".pawns").children.length) BUI.sig = "";
   const { events, now } = bsource(), sim = BUI.mode === "sim", ses = BR.sessions(events, now);
   const recent = (x) => now - Date.parse(x.last) < (x.state === "done" ? 5000 : 12e4);
   const onFloor = ses.filter(recent), dayEv = events.filter((e) => now - Date.parse(e.at) < 864e5), cnt = (k) => dayEv.filter((e) => k.includes(e.kind)).length;
@@ -588,9 +612,17 @@ function bupdate() {
     .map(([k, v, c]) => `<div class="${c || ""}"><span>${k}</span><b>${v}</b></div>`).join("");
   if (sim) $("#sClock").textContent = `시뮬 시각 ${clock(now)} · ${BUI.speed}×`;
   else { const r = $("#rState"); if (r) { r.textContent = BUI.data ? "연결됨 · 3초마다 갱신" : BUI.err || "확인 중…"; r.classList.toggle("on", !!BUI.data); } }
+  // 3D 라운지 — 같은 기록을 3D 장면에 넘긴다
+  if (BUI.lounge) {
+    BUI.lounge.update({ clock: clock(now), speed: sim ? BUI.speed : 1, stats: sim ? st : { done: ses.filter((x) => x.state === "done").length, fails: cnt(["fail"]), recovered: 0 },
+      agents: onFloor.filter((x) => x.state !== "done" || !onFloor.some((y) => y !== x && y.source === x.source && y.state !== "done" && Date.parse(y.first) > Date.parse(x.first))).map((x) => { const last = events.filter((e) => e.session === x.session).at(-1); return { id: x.session, source: x.source, color: FL.srcStyle(x.source)[0], name: `${BR.srcName(x.source)} · ${x.project || x.agent}`, kind: last.kind, kindLabel: (BR.KIND[last.kind] || BR.KIND.note)[0], title: last.title.replace(/^[^·]+ · /, ""), state: x.state }; }) });
+    const cnt3 = $("#lgCount"); if (cnt3) cnt3.textContent = `일하는 AI ${onFloor.filter((x) => x.state !== "done").length}`;
+    const hot = events.slice().reverse().find((e) => ["done", "fail"].includes(e.kind) || (e.kind === "test" && /재검사/.test(e.title)));
+    if (hot && hot.id !== BUI.cast) { BUI.cast = hot.id; const c = $("#lgCast"); if (c) { c.textContent = `${BR.srcName(hot.source)} · ${hot.kind === "fail" ? "실패를 발견했어요 — 복구 중" : hot.kind === "done" ? "일을 마쳤어요" : "재검사를 통과했어요"} (가상)`; c.className = "lg-cast on " + hot.kind; } }
+  }
   // 평면 위 말 — 자리별로 칸을 나눠 세운다
   const layer = $(".pawns"), seenKeys = new Set(), per = {};
-  for (const x of onFloor.slice().reverse()) {
+  if (layer) for (const x of onFloor.slice().reverse()) {
     const mine = events.filter((e) => e.session === x.session), last = mine.at(-1), prev = BUI.prevSt[x.session];
     const stn = FL.stationFor(last.kind, prev); BUI.prevSt[x.session] = stn;
     const slot = (per[stn] = (per[stn] || 0) + 1) - 1, [px, py] = FL.spot(stn, slot), label = (BR.KIND[last.kind] || BR.KIND.note)[0];
@@ -602,7 +634,7 @@ function bupdate() {
     g.querySelector("title")?.remove(); g.insertAdjacentHTML("afterbegin", `<title>${esc(BR.srcName(x.source))} · ${esc(x.project || "")} — ${esc(last.title)}</title>`);
     seenKeys.add(x.session);
   }
-  layer.querySelectorAll("[data-pawn]").forEach((g) => { if (!seenKeys.has(g.dataset.pawn)) { g.style.opacity = "0"; setTimeout(() => !seenKeys.has(g.dataset.pawn) && g.remove(), 600); } });
+  layer?.querySelectorAll("[data-pawn]").forEach((g) => { if (!seenKeys.has(g.dataset.pawn)) { g.style.opacity = "0"; setTimeout(() => !seenKeys.has(g.dataset.pawn) && g.remove(), 600); } });
   // 사람이 하는 일이 단순해지도록: 누군가 있는 자리만 밝게
   $$(".floor .st").forEach((g) => { const n = per[g.dataset.st] || 0; g.classList.toggle("busy", n > 0); g.querySelector(".st-c").textContent = n ? `· ${n}` : ""; });
   // 아래는 기록이 바뀔 때만 다시 그린다(애니메이션·펼침 상태 유지)
