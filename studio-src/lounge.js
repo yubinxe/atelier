@@ -1,7 +1,7 @@
 // Atelier AX · AI 라운지(3D) — 고층 라운지에서 AI 들이 자리에 앉아 일하고, 하는 일에 따라 자료실·실행실·검사대·승인 데스크로 오간다.
 // 데이터는 모델하우스와 같은 시뮬레이션 이벤트(가상). three.js 로 그리며 `npm run build:lounge` 가 public/studio/lounge.bundle.js 로 묶는다.
 import {
-  WebGLRenderer, Scene, PerspectiveCamera, Color, Fog, Group, Mesh, Vector3, CanvasTexture, SRGBColorSpace, RepeatWrapping,
+  WebGLRenderer, Scene, PerspectiveCamera, Color, Fog, Group, Mesh, Vector2, Vector3, Raycaster, CanvasTexture, SRGBColorSpace, RepeatWrapping,
   ACESFilmicToneMapping, HemisphereLight, AmbientLight, DirectionalLight, PointLight,
   BoxGeometry, PlaneGeometry, CircleGeometry, CylinderGeometry, ConeGeometry, SphereGeometry, CapsuleGeometry, RingGeometry,
   MeshStandardMaterial, MeshBasicMaterial, AdditiveBlending, DoubleSide,
@@ -117,14 +117,17 @@ export function mountLounge(el, opt = {}) {
 
   // 책상 12개 — 칸막이·스탠드·번호판·의자
   const deskGroup = new Group(); scene.add(deskGroup);
-  const lampGeo = new ConeGeometry(0.22, 0.22, 20, 1, true), poolGeo = new CircleGeometry(0.7, 24);
+  const lampGeo = new ConeGeometry(0.22, 0.22, 20, 1, true), poolGeo = new CircleGeometry(0.7, 24), deskFx = new Map();
   for (const d of DESKS) {
     const g = new Group(); g.position.set(d.x, 0, d.z); deskGroup.add(g);
     box(1.8, 0.06, 0.95, M.wood, 0, 0.78, 0, g); box(0.06, 0.75, 0.9, M.dark, -0.86, 0.38, 0, g); box(0.06, 0.75, 0.9, M.dark, 0.86, 0.38, 0, g);
     box(1.86, 0.62, 0.05, M.panel, 0, 1.1, -0.48, g); box(0.05, 0.62, 0.95, M.panel, -0.9, 1.1, 0, g); box(0.05, 0.62, 0.95, M.panel, 0.9, 1.1, 0, g);
     box(0.3, 0.07, 0.38, new MeshStandardMaterial({ color: [0x2f4f8f, 0x8a3b3b, 0x3d6b52][d.n % 3] }), -0.55, 0.85, 0.05, g);
     box(0.02, 0.5, 0.02, M.metal, 0.6, 1.06, -0.25, g); const sh = new Mesh(lampGeo, M.shade); sh.position.set(0.6, 1.36, -0.25); g.add(sh);
-    const pool = new Mesh(poolGeo, M.pool); pool.rotation.x = -Math.PI / 2; pool.position.set(0.3, 0.815, -0.05); g.add(pool);
+    const poolM = M.pool.clone(), lapM = new MeshBasicMaterial({ color: 0x161b27 });
+    box(0.52, 0.02, 0.34, M.metal, 0.05, 0.82, 0.04, g); const lid = box(0.52, 0.34, 0.02, lapM, 0.05, 0.99, -0.14, g); lid.rotation.x = -0.2;
+    deskFx.set(d.n, { poolM, lapM, on: 0 });
+    const pool = new Mesh(poolGeo, poolM); pool.rotation.x = -Math.PI / 2; pool.position.set(0.3, 0.815, -0.05); g.add(pool);
     const plate = new Mesh(new PlaneGeometry(0.42, 0.21), new MeshBasicMaterial({ map: numTexture(d.n) })); plate.position.set(-0.55, 1.47, -0.45); g.add(plate);
     box(0.5, 0.08, 0.5, M.dark, 0, 0.48, 0.8, g); box(0.5, 0.55, 0.06, M.dark, 0, 0.78, 1.05, g); box(0.06, 0.45, 0.06, M.metal, 0, 0.24, 0.8, g);
   }
@@ -150,19 +153,28 @@ export function mountLounge(el, opt = {}) {
   // ── AI 캐릭터 ──
   const agents = new Map();
   const bodyGeo = new CapsuleGeometry(0.27, 0.42, 4, 12), headGeo = new SphereGeometry(0.3, 20, 14), eyeGeo = new SphereGeometry(0.04, 8, 6), capGeo = new CylinderGeometry(0.2, 0.26, 0.12, 18), ringGeo = new RingGeometry(0.42, 0.55, 32);
+  const armGeo = new CapsuleGeometry(0.075, 0.3, 3, 8), footGeo = new SphereGeometry(0.11, 10, 8), shadowGeo = new CircleGeometry(0.46, 24);
+  const shadowM = new MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.38, depthWrite: false });
   const failM = new MeshBasicMaterial({ color: 0xff4d40, transparent: true, opacity: 0.85, side: DoubleSide }), okM = new MeshBasicMaterial({ color: 0x5fe39b, transparent: true, opacity: 0.85, side: DoubleSide });
   function makeAgent(s) {
     const g = new Group(), col = COLOR[s.color] ?? COLOR.ink, mat = new MeshStandardMaterial({ color: col, roughness: 0.45 });
     const body = new Mesh(bodyGeo, mat); body.position.y = 0.62; const head = new Mesh(headGeo, M.white); head.position.y = 1.3;
     const cap = new Mesh(capGeo, mat); cap.position.y = 1.58; const e1 = new Mesh(eyeGeo, M.eye), e2 = new Mesh(eyeGeo, M.eye); e1.position.set(-0.1, 1.33, -0.27); e2.position.set(0.1, 1.33, -0.27);
     const ring = new Mesh(ringGeo, failM); ring.rotation.x = -Math.PI / 2; ring.position.y = 0.03; ring.visible = false;
-    const rig = new Group(); rig.add(body, head, cap, e1, e2); g.add(rig, ring); scene.add(g);
+    const arm = (x) => { const p = new Group(); p.position.set(x, 0.98, 0); const m = new Mesh(armGeo, mat); m.position.y = -0.2; p.add(m); return p; };
+    const aL = arm(-0.33), aR = arm(0.33), fL = new Mesh(footGeo, M.dark), fR = new Mesh(footGeo, M.dark); fL.position.set(-0.13, 0.08, 0); fR.position.set(0.13, 0.08, 0); fL.scale.z = fR.scale.z = 1.4;
+    const shadow = new Mesh(shadowGeo, shadowM); shadow.rotation.x = -Math.PI / 2; shadow.position.y = 0.015;
+    const rig = new Group(); rig.add(body, head, cap, e1, e2, aL, aR, fL, fR); g.add(shadow, rig, ring); scene.add(g);
+    for (const m of [body, head, cap]) m.userData.agent = s.id;
     const desk = DESKS.find((d) => d.n === (HOME[s.source] || 1 + (agents.size * 5) % 12)) || DESKS[0];
     const tag = document.createElement("div"); tag.className = "lg-tag"; tag.innerHTML = `<b></b><span></span>`; overlay.append(tag);
-    const a = { g, rig, ring, tag, desk, path: [], seated: false, at: null, kind: "", state: "", bob: Math.random() * 6, entering: true };
+    tag.addEventListener("click", () => follow(s.id));
+    const emo = document.createElement("i"); emo.className = "lg-emo"; emo.setAttribute("aria-hidden", "true"); overlay.append(emo);
+    const a = { id: s.id, source: s.source, name: "", g, rig, ring, tag, emo, aL, aR, fL, fR, desk, path: [], seated: false, at: null, kind: "", state: "", bob: Math.random() * 6, entering: true, yaw: 0, pop: 0 };
     g.position.set(AISLE_X, 0, 11); a.path = [];
     return a;
   }
+  const removeAgent = (a) => { scene.remove(a.g); a.tag.remove(); a.emo.remove(); agents.delete(a.id); };
   const seatOf = (d) => ({ x: d.x, z: d.z + 0.78 });
   function targetFor(a, kind) { const st = KIND_TO[kind]; return st ? { ...STATIONS[st], st } : { ...seatOf(a.desk), face: 0, st: "desk" }; }
   function route(a, t) { // 칸막이를 뚫지 않게 통로로 돌아간다
@@ -179,20 +191,35 @@ export function mountLounge(el, opt = {}) {
   // ── 시점: 전경 · 책상 · 창가 · 위에서 ──
   const VIEWS = { overview: { t: [0, 1, 1], r: 25, th: 0.55, ph: 1.02 }, desk: { t: [-1, 0.9, 2], r: 12.5, th: 0.35, ph: 1.12 }, window: { t: [0, 2.4, -6], r: 13.5, th: 0.12, ph: 1.32 }, top: { t: [0, 0, 0.5], r: 27, th: 0.001, ph: 0.12 } };
   const cam = { t: new Vector3(0, 1, 1), r: 25, th: 0.55, ph: 1.02 }, goal = { t: new Vector3(0, 1, 1), r: 25, th: 0.55, ph: 1.02 };
-  const setView = (v) => { const V = VIEWS[v] || VIEWS.overview; goal.t.set(...V.t); goal.r = V.r; goal.th = V.th; goal.ph = V.ph; if (reduce) Object.assign(cam, { r: goal.r, th: goal.th, ph: goal.ph }), cam.t.copy(goal.t); };
+  let curView = opt.view || "overview", followId = null, idleAt = performance.now();
+  const followBox = document.createElement("div"); followBox.className = "lg-follow"; followBox.innerHTML = `<span></span><button type="button">해제</button>`; el.append(followBox);
+  followBox.lastChild.addEventListener("click", () => setView(curView));
+  function follow(id) {
+    const a = agents.get(id); if (!a || a.leaving) return;
+    followId = id; goal.r = 9.5; goal.ph = 1.05; followBox.firstChild.textContent = `${a.name} 따라가는 중`; followBox.classList.add("on");
+  }
+  const setView = (v) => { followId = null; followBox.classList.remove("on"); curView = v in VIEWS ? v : "overview"; idleAt = performance.now(); const V = VIEWS[curView]; goal.t.set(...V.t); goal.r = V.r; goal.th = V.th; goal.ph = V.ph; if (reduce) Object.assign(cam, { r: goal.r, th: goal.th, ph: goal.ph }), cam.t.copy(goal.t); };
   setView(opt.view || "overview");
   // 드래그로 돌리고, 휠·두 손가락으로 확대
   const ptrs = new Map(); let pinch = 0;
   const cv = renderer.domElement; cv.style.touchAction = "none";
-  cv.addEventListener("pointerdown", (e) => { cv.setPointerCapture(e.pointerId); ptrs.set(e.pointerId, [e.clientX, e.clientY]); });
+  const ray = new Raycaster(), ndc = new Vector2(); let downAt = null;
+  cv.addEventListener("pointerdown", (e) => { cv.setPointerCapture(e.pointerId); ptrs.set(e.pointerId, [e.clientX, e.clientY]); downAt = [e.clientX, e.clientY]; idleAt = performance.now(); });
   cv.addEventListener("pointermove", (e) => {
     if (!ptrs.has(e.pointerId)) return; const [px, py] = ptrs.get(e.pointerId); ptrs.set(e.pointerId, [e.clientX, e.clientY]);
     if (ptrs.size === 1) { goal.th -= (e.clientX - px) * 0.006; goal.ph = Math.min(1.45, Math.max(0.1, goal.ph - (e.clientY - py) * 0.005)); }
     else if (ptrs.size === 2) { const [a, b] = [...ptrs.values()], d = Math.hypot(a[0] - b[0], a[1] - b[1]); if (pinch) goal.r = Math.min(34, Math.max(8, goal.r * (pinch / d))); pinch = d; }
   });
-  const up = (e) => { ptrs.delete(e.pointerId); if (ptrs.size < 2) pinch = 0; };
+  const up = (e) => {
+    ptrs.delete(e.pointerId); if (ptrs.size < 2) pinch = 0; idleAt = performance.now();
+    if (e.type !== "pointerup" || !downAt || Math.hypot(e.clientX - downAt[0], e.clientY - downAt[1]) > 6) return;
+    const r = cv.getBoundingClientRect(); ndc.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1); ray.setFromCamera(ndc, camera);
+    const hit = ray.intersectObjects([...agents.values()].map((a) => a.rig), true).find((h) => h.object.userData.agent);
+    if (hit) follow(hit.object.userData.agent);
+  };
+  el.addEventListener("keydown", (e) => { if (e.key === "Escape" && followId) setView(curView); });
   cv.addEventListener("pointerup", up); cv.addEventListener("pointercancel", up);
-  cv.addEventListener("wheel", (e) => { e.preventDefault(); goal.r = Math.min(34, Math.max(8, goal.r * (1 + Math.sign(e.deltaY) * 0.08))); }, { passive: false });
+  cv.addEventListener("wheel", (e) => { e.preventDefault(); idleAt = performance.now(); goal.r = Math.min(34, Math.max(8, goal.r * (1 + Math.sign(e.deltaY) * 0.08))); }, { passive: false });
 
   // 크기·보이기
   const resize = () => { const w = el.clientWidth, h = el.clientHeight; renderer.setSize(w, h, false); camera.aspect = w / Math.max(1, h); camera.updateProjectionMatrix(); };
@@ -200,12 +227,22 @@ export function mountLounge(el, opt = {}) {
   let visible = true; const io = new IntersectionObserver(([e]) => (visible = e.isIntersecting)); io.observe(el);
   let showLabels = opt.showLabels !== false, speed = 1, last = performance.now(), raf = 0, ledT = 0;
   const tmp = new Vector3();
+  const confGeo = new PlaneGeometry(0.11, 0.07), confM = [0xc8a24a, 0xf1efe9, 0x5fe39b, 0x6f97ff].map((c) => new MeshBasicMaterial({ color: c, side: DoubleSide })), conf = [];
+  for (let i = 0; i < 48; i++) { const m = new Mesh(confGeo, confM[i % 4]); m.visible = false; scene.add(m); conf.push({ m, v: new Vector3(), t: 0 }); }
+  const burst = (x, y, z) => { if (reduce) return; for (const c of conf.filter((c) => c.t <= 0).slice(0, 24)) { c.m.position.set(x, y, z); c.v.set((Math.random() - 0.5) * 3.2, 3 + Math.random() * 2.4, (Math.random() - 0.5) * 3.2); c.t = 1.5 + Math.random() * 0.5; c.m.visible = true; } };
+  // 떠오르는 글자 — 완료 · 실패 발견 · 복구
+  const floats = [];
+  const floatText = (a, text, cls) => { const d = document.createElement("i"); d.className = "lg-float " + cls; d.textContent = text; overlay.append(d); floats.push({ el: d, x: a.g.position.x, z: a.g.position.z, y: 2.2, born: performance.now(), t: 0 }); };
+  const turn = (from, to) => { let d = (to - from) % (Math.PI * 2); if (d > Math.PI) d -= Math.PI * 2; if (d < -Math.PI) d += Math.PI * 2; return d; };
 
   function frame(now) {
     raf = requestAnimationFrame(frame);
     const dt = Math.min(0.05, (now - last) / 1000); last = now;
     if (!visible || document.hidden) return;
     const k = reduce ? 1 : 1 - Math.pow(0.0015, dt);
+    const fa = followId && agents.get(followId);
+    if (followId && (!fa || fa.leaving)) { const nx = fa && [...agents.values()].find((b) => !b.leaving && b.source === fa.source); nx ? follow(nx.id) : setView(curView); } else if (fa) goal.t.set(fa.g.position.x, 1.1, fa.g.position.z);
+    if (!reduce && !followId && curView === "overview" && !ptrs.size && now - idleAt > 7000) goal.th += dt * 0.035;
     cam.r += (goal.r - cam.r) * k; cam.th += (goal.th - cam.th) * k; cam.ph += (goal.ph - cam.ph) * k; cam.t.lerp(goal.t, k);
     camera.position.set(cam.t.x + cam.r * Math.sin(cam.ph) * Math.sin(cam.th), cam.t.y + cam.r * Math.cos(cam.ph), cam.t.z + cam.r * Math.sin(cam.ph) * Math.cos(cam.th)); camera.lookAt(cam.t);
     ledT += dt; if (!reduce && ledT > 0.35) { ledT = 0; for (const l of leds) if (Math.random() < 0.25) l.visible = !l.visible; }
@@ -215,25 +252,52 @@ export function mountLounge(el, opt = {}) {
       const p = a.g.position;
       if (a.path.length) {
         const n = a.path[0], dx = n.x - p.x, dz = n.z - p.z, d = Math.hypot(dx, dz), step = (reduce ? 999 : 2.4 * Math.min(2.5, speed)) * dt;
-        if (d <= step) { p.x = n.x; p.z = n.z; a.path.shift(); if (!a.path.length) { a.at = a.goal.st; a.seated = a.at === "desk"; a.g.rotation.y = a.goal.face; } }
-        else { p.x += (dx / d) * step; p.z += (dz / d) * step; a.g.rotation.y = Math.atan2(-dx, -dz); }
+        if (d <= step) { p.x = n.x; p.z = n.z; a.path.shift(); if (!a.path.length) { a.at = a.goal.st; a.seated = a.at === "desk"; a.yaw = a.goal.face ?? a.yaw; a.pop = 1; if (a.at === "approve" && a.state === "done") burst(a.g.position.x, 1.5, a.g.position.z - 1.2); if (a.leaving) { removeAgent(a); continue; } } }
+        else { p.x += (dx / d) * step; p.z += (dz / d) * step; a.yaw = Math.atan2(-dx, -dz); }
       }
+      a.g.rotation.y += reduce ? turn(a.g.rotation.y, a.yaw) : turn(a.g.rotation.y, a.yaw) * (1 - Math.pow(0.00002, dt));
+      a.pop = Math.max(0, a.pop - dt * 3.5); const sq = reduce ? 0 : Math.sin(a.pop * Math.PI) * (1 - a.pop * 0.3);
+      a.rig.scale.set(1 + sq * 0.1, 1 - sq * 0.12, 1 + sq * 0.1);
       const walking = a.path.length > 0; a.bob += dt * (walking ? 11 : 2.2);
       a.rig.position.y = a.seated ? -0.18 : walking && !reduce ? Math.abs(Math.sin(a.bob)) * 0.08 : Math.sin(a.bob) * 0.015;
-      a.ring.visible = a.state === "fail" || a.state === "done"; a.ring.material = a.state === "fail" ? failM : okM; if (a.ring.visible && !reduce) a.ring.scale.setScalar(1 + Math.sin(now / 180) * 0.08);
+      const sw = walking && !reduce ? Math.sin(a.bob) : 0;
+      if (a.seated && !reduce) { const ty = a.state === "live" ? Math.sin(now / 70 + a.bob) * 0.12 : 0; a.aL.rotation.x = 1.15 + ty; a.aR.rotation.x = 1.15 - ty; }
+      else if (a.state === "done" && !walking && !reduce) { a.aL.rotation.x = 0; a.aR.rotation.x = 0; a.aL.rotation.z = -2.6 - Math.sin(now / 160) * 0.25; a.aR.rotation.z = 2.6 + Math.sin(now / 160) * 0.25; }
+      else { a.aL.rotation.set(sw * 0.7, 0, 0); a.aR.rotation.set(-sw * 0.7, 0, 0); }
+      if (!(a.state === "done" && !walking) || a.seated) { a.aL.rotation.z = 0; a.aR.rotation.z = 0; }
+      a.fL.position.z = sw * 0.14; a.fR.position.z = -sw * 0.14; a.fL.visible = a.fR.visible = !a.seated;
+      a.ring.visible = !a.leaving && (a.state === "fail" || a.state === "done"); a.ring.material = a.state === "fail" ? failM : okM; if (a.ring.visible && !reduce) a.ring.scale.setScalar(1 + Math.sin(now / 180) * 0.08);
+      tmp.set(p.x, a.seated ? 1.12 : 1.3, p.z).project(camera);
+      const vis = tmp.z < 1 && Math.abs(tmp.x) < 1.05 && Math.abs(tmp.y) < 1.05;
+      a.emo.style.display = vis && a.emo.textContent ? "" : "none";
+      if (vis) a.emo.style.transform = `translate(${((tmp.x + 1) / 2 * W + 16).toFixed(1)}px, ${((1 - tmp.y) / 2 * H).toFixed(1)}px) translate(0, -50%)`;
       tmp.set(p.x, (a.seated ? 1.45 : 1.65) + 0.45, p.z).project(camera);
-      const on = showLabels && tmp.z < 1 && Math.abs(tmp.x) < 1.1 && Math.abs(tmp.y) < 1.1;
+      const on = showLabels && !a.leaving && tmp.z < 1 && Math.abs(tmp.x) < 1.1 && Math.abs(tmp.y) < 1.1;
       a.tag.style.display = on ? "" : "none";
-      if (on) shown.push({ a, x: (tmp.x + 1) / 2 * W, y: (1 - tmp.y) / 2 * H, d: tmp.z });
+      if (on && !a.tw) a.tw = a.tag.offsetWidth;
+      if (on) shown.push({ a, w: a.tw || 200, x: (tmp.x + 1) / 2 * W, y: (1 - tmp.y) / 2 * H, d: tmp.z });
     }
     // 이름표가 겹치면 뒤쪽(먼) 것부터 위로 밀어 올린다
     shown.sort((p, q) => p.d - q.d);
-    const placed = [], TW = W < 560 ? 104 : 136, TH = W < 560 ? 36 : 42;
+    const placed = [], TH = W < 560 ? 46 : 52;
     for (const t of shown) {
-      for (let k = 0; k < 6 && placed.some((o) => Math.abs(o.x - t.x) < TW && Math.abs(o.y - t.y) < TH); k++) t.y -= TH;
+      for (let k = 0; k < 6 && placed.some((o) => Math.abs(o.x - t.x) < (o.w + t.w) / 2 + 6 && Math.abs(o.y - t.y) < TH); k++) t.y -= TH;
       placed.push(t);
       t.a.tag.style.zIndex = String(100 - placed.length);
       t.a.tag.style.transform = `translate(${t.x.toFixed(1)}px, ${t.y.toFixed(1)}px) translate(-50%, -100%)`;
+    }
+    for (const [n, fx] of deskFx) {
+      let occ = false; for (const a of agents.values()) if (a.seated && a.desk.n === n) { occ = true; break; }
+      fx.on += ((occ ? 1 : 0) - fx.on) * (reduce ? 1 : Math.min(1, dt * 3));
+      fx.lapM.color.setRGB(0.07 + fx.on * 0.5, 0.085 + fx.on * 0.66, 0.13 + fx.on * 0.87, SRGBColorSpace); fx.poolM.opacity = 0.1 + fx.on * 0.24;
+    }
+    for (const c of conf) if (c.t > 0) { c.t -= dt; c.v.y -= 7 * dt; c.m.position.addScaledVector(c.v, dt); c.m.rotation.x += dt * 9; c.m.rotation.y += dt * 6; if (c.t <= 0 || c.m.position.y < 0.05) { c.t = 0; c.m.visible = false; } }
+    for (let i = floats.length - 1; i >= 0; i--) {
+      const f = floats[i]; f.t = (now - f.born) / 1000; const life = 1.8;
+      if (f.t > life) { f.el.remove(); floats.splice(i, 1); continue; }
+      tmp.set(f.x, f.y + (reduce ? 0 : f.t * 0.9), f.z).project(camera);
+      f.el.style.opacity = String(Math.min(1, f.t * 6) * (1 - Math.pow(f.t / life, 3)));
+      f.el.style.transform = `translate(${((tmp.x + 1) / 2 * W).toFixed(1)}px, ${((1 - tmp.y) / 2 * H).toFixed(1)}px) translate(-50%, -100%) scale(${(0.8 + Math.min(1, f.t * 5) * 0.2).toFixed(2)})`;
     }
     renderer.render(scene, camera);
   }
@@ -250,13 +314,19 @@ export function mountLounge(el, opt = {}) {
         seen.add(s.id);
         const kind = s.kind === "fail" ? a.kind || "edit" : s.kind;
         if (kind !== a.kind || a.entering) { const t = targetFor(a, kind); if (!a.goal || a.entering || t.st !== a.goal.st) route(a, t); a.kind = kind; a.entering = false; }
-        a.state = s.state;
-        a.tag.className = `lg-tag ${s.color} ${s.state}`; a.tag.firstChild.textContent = s.name; a.tag.lastChild.textContent = s.kindLabel + " · " + s.title;
+        if (s.state !== a.state && a.state) {
+          if (s.state === "done") { floatText(a, "완료", "ok"); }
+          else if (s.state === "fail") floatText(a, "실패 발견", "bad");
+          else if (a.state === "fail") floatText(a, "복구", "ok");
+        }
+        if (s.state !== a.state) { a.emo.textContent = s.state === "fail" ? "!" : s.state === "done" ? "✓" : s.state === "wait" ? "…" : ""; a.emo.className = `lg-emo ${s.state}`; void a.emo.offsetWidth; a.emo.classList.add("pop"); }
+        a.state = s.state; a.name = s.name;
+        a.tag.className = `lg-tag ${s.color} ${s.state}`; const txt = s.kindLabel + " · " + s.title; if (a.tag.lastChild.textContent !== txt || a.tag.firstChild.textContent !== s.name) { a.tag.firstChild.textContent = s.name; a.tag.lastChild.textContent = txt; a.tw = 0; }
       }
-      for (const [id, a] of agents) if (!seen.has(id)) { scene.remove(a.g); a.tag.remove(); agents.delete(id); }
+      for (const a of agents.values()) if (!seen.has(a.id) && !a.leaving) { a.leaving = true; a.emo.textContent = ""; route(a, { x: AISLE_X, z: 11.5, face: Math.PI, st: "exit" }); }
     },
-    setView, setLabels(v) { showLabels = v; },
-    destroy() { cancelAnimationFrame(raf); ro.disconnect(); io.disconnect(); renderer.dispose(); renderer.domElement.remove(); overlay.remove(); },
+    setView, follow, setLabels(v) { showLabels = v; },
+    destroy() { cancelAnimationFrame(raf); ro.disconnect(); io.disconnect(); renderer.dispose(); renderer.domElement.remove(); overlay.remove(); followBox.remove(); },
   };
 }
 export const webglOk = () => { try { const c = document.createElement("canvas"); return !!(window.WebGLRenderingContext && (c.getContext("webgl2") || c.getContext("webgl"))); } catch { return false; } };
