@@ -516,3 +516,51 @@ fieldset.field { border: 0; padding: 0; margin: 0; } .chips { display: flex; fle
   .room-win { position: relative; inset: auto; margin: 0 var(--pad); aspect-ratio: 16 / 10; clip-path: inset(0 round 20px); --rp: 1; }
   .room-notes { margin-top: 24px; } .room-win img { transform: none !important; }
 }
+
+/* ── v6 애플식 동적 효과 — 스프링 등장 · 가로 하이라이트 · 문장 채움 · 3D 기울기 ── */
+/* 등장: 스프링 곡선 + 형제끼리 차례로 */
+.js [data-reveal] { transform: translateY(32px) scale(.985); transition: opacity 1s cubic-bezier(.16, 1, .3, 1) var(--rd, 0ms), transform 1.3s cubic-bezier(.16, 1, .3, 1) var(--rd, 0ms); }
+.js .h2[data-reveal] { transition: opacity 1s cubic-bezier(.16, 1, .3, 1) var(--rd, 0ms), transform 1.3s cubic-bezier(.16, 1, .3, 1) var(--rd, 0ms), filter 1.2s cubic-bezier(.16, 1, .3, 1) var(--rd, 0ms); }
+
+/* 히어로: 제목 그라데이션이 천천히 흐르고, 스크롤하면 흐름도가 뒤로 눕는다 */
+.hero .grad { background-size: 220% 100%; animation: sheen 9s ease-in-out infinite alternate; }
+@keyframes sheen { from { background-position: 0% 50%; } to { background-position: 100% 50%; } }
+.hero.cine .flow { transform: perspective(1400px) rotateX(calc(var(--hp, 0) * 26deg)) scale(calc(1 - var(--hp, 0) * .12)); transform-origin: 50% 100%; will-change: transform; }
+.hero.cine .display { transform: scale(calc(1 + var(--hp, 0) * .05)); transform-origin: 0 100%; }
+
+/* 서비스: 고정된 화면 안에서 카드가 옆으로 지나간다 */
+.svc-sec { padding: 0; }
+.hs-pin { padding: clamp(80px, 11vw, 150px) 0 clamp(56px, 7vw, 96px); }
+.hs-view { overflow: hidden; outline: none; }
+.svc-grid.hs-track { display: flex; gap: 20px; width: max-content; padding: 6px max(var(--pad), calc((100vw - var(--max)) / 2 + var(--pad))) 30px; will-change: transform; }
+.hs-track .card { flex: 0 0 clamp(320px, 38vw, 540px); min-height: 420px; display: flex; flex-direction: column; gap: 14px; transform-origin: 50% 60%; scale: var(--cs, 1); opacity: var(--co, 1); transition: border-color .3s, box-shadow .4s, transform .45s cubic-bezier(.16, 1, .3, 1); }
+.hs-track .card .h3 { font-size: clamp(22px, 2vw, 28px); letter-spacing: -.03em; }
+.hs-track .card .num { font-size: 13px; }
+.hs-foot { display: flex; align-items: center; gap: 18px; margin-top: 8px; }
+.hs-bar { position: relative; flex: 0 0 min(240px, 40%); height: 2px; background: var(--line-2); border-radius: 2px; overflow: hidden; }
+.hs-bar i { position: absolute; inset: 0; background: var(--cobalt); transform-origin: 0 50%; transform: scaleX(var(--hb, .25)); transition: transform .2s linear; }
+.hs-count { font: 500 12.5px var(--mono); color: var(--muted); letter-spacing: .06em; } .hs-count b { color: var(--ink); font-weight: 600; }
+.hs-hint { margin-left: auto; font-size: 13px; color: var(--faint); }
+
+/* 문장 채움: 스크롤에 따라 줄 단위로 글자가 진해진다 */
+.fill { --f: 0%; --fa: var(--ink); --fb: color-mix(in srgb, var(--ink) 16%, transparent); background-image: linear-gradient(var(--fa), var(--fa)), linear-gradient(var(--fb), var(--fb)); background-size: var(--f) 100%, 100% 100%; background-repeat: no-repeat; -webkit-background-clip: text; background-clip: text; color: transparent; -webkit-box-decoration-break: slice; box-decoration-break: slice; }
+.no-js .fill, html:not(.js) .fill { --f: 100%; }
+
+/* 3D 기울기 + 빛 반사 */
+[data-tilt] { transform-style: preserve-3d; will-change: transform; }
+.pain, .ind .tile, .steps4 li { position: relative; overflow: hidden; isolation: isolate; }
+.pain::after, .ind .tile::after, .steps4 li::after, .hs-track .card::after { content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none; border-radius: inherit; background: radial-gradient(360px circle at var(--tx, 50%) var(--ty, 50%), rgba(157, 187, 255, .22), transparent 60%); opacity: 0; transition: opacity .4s; }
+.tilting::after { opacity: 1 !important; }
+.tilting { box-shadow: 0 34px 70px -42px rgba(14, 22, 38, .55) !important; border-color: var(--line-2) !important; }
+
+@media (max-width: 1080px) {
+  .hs-view { overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; -webkit-overflow-scrolling: touch; } .hs-view::-webkit-scrollbar { display: none; }
+  .svc-grid.hs-track { padding-bottom: 20px; } .hs-track .card { flex-basis: min(84vw, 460px); scroll-snap-align: center; min-height: 0; }
+  .hs-hint { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero .grad { animation: none; } .hero.cine .flow, .hero.cine .display { transform: none !important; }
+  .fill { --f: 100% !important; }
+  .hs-view { overflow-x: auto; scroll-snap-type: x mandatory; } .hs-track .card { scale: 1; opacity: 1; scroll-snap-align: start; }
+}
+.tilting { transition: transform .18s ease-out, box-shadow .4s, border-color .3s !important; }

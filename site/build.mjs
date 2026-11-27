@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 import { ORG, SERVICES, METHOD, WORK, PAINS, BA, DIFF, INDUSTRIES, FOUNDER, FAQ, POSTS, TOPICS } from "./content.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url)), ROOT = join(HERE, "..", "public");
-const V = "5"; // 정적 자산 캐시 버전
+const V = "6"; // 정적 자산 캐시 버전
 const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const MARK = (c = "currentColor") => `<svg viewBox="0 0 26 26" aria-hidden="true"><rect x="1" y="1" width="24" height="24" rx="6" fill="none" stroke="${c}" stroke-width="1.5"/><path d="M7 21V12a6 6 0 0 1 12 0v9" fill="none" stroke="${c}" stroke-width="1.5"/><path d="M13 6.5V21" stroke="#9dbbff" stroke-width="1.5"/></svg>`;
 const ARR = '<span class="arr" aria-hidden="true">→</span>';
@@ -159,16 +159,17 @@ pages.home = (lang) => {
 </div></section>
 
 <section class="sec white" aria-labelledby="h-diff"><div class="wrap diff">
-  <div class="quote"><p class="kicker">${ko ? "1인 전문 스튜디오" : "A one-person studio"}</p><p class="big" id="h-diff" data-reveal>${ko ? "작게 일하기 때문에,<br>끝까지 책임질 수 있습니다." : "Because we work small,<br>we can own it end to end."}</p><span class="meta">${ko ? "규모를 부풀리지 않습니다. 대신 한 사람이 처음부터 끝까지 맡습니다." : "We do not inflate our size. One person takes the work from start to finish."}</span></div>
+  <div class="quote"><p class="kicker">${ko ? "1인 전문 스튜디오" : "A one-person studio"}</p><p class="big" id="h-diff"><span class="fill" data-fill>${ko ? "작게 일하기 때문에,<br>끝까지 책임질 수 있습니다." : "Because we work small,<br>we can own it end to end."}</span></p><span class="meta">${ko ? "규모를 부풀리지 않습니다. 대신 한 사람이 처음부터 끝까지 맡습니다." : "We do not inflate our size. One person takes the work from start to finish."}</span></div>
   <ol>${DIFF.map((d, i) => { const [h, b] = ko ? d.k : d.e; return `<li data-reveal><span class="num">0${i + 1}</span><h3 class="h3">${h}</h3><p>${b}</p></li>`; }).join("")}</ol>
 </div></section>
 
-<section class="sec" aria-labelledby="h-svc"><div class="wrap">
-  ${head(ko ? "서비스" : "Services", ko ? "진단에서 운영까지, 이어지는 네 가지 서비스" : "Four connected services, from diagnosis to operation", "h-svc", ko ? "어느 단계에서든 시작할 수 있고, 필요한 다음 단계로 자연스럽게 이어집니다." : "Start at any stage; each one leads naturally into the next.")}
-  <div class="svc-grid">${SERVICES.map((s, i) => { const c = ko ? s.k : s.e; return `<a class="card" href="${path(lang, "services")}#${s.id}" data-reveal data-light><div class="top-row"><span class="num">0${i + 1}</span></div><h3 class="h3">${svcName(s, lang)}</h3>${ko ? `<p class="en-name">${s.en.name}</p>` : ""}
+<section class="sec svc-sec" aria-labelledby="h-svc"><div class="hs" data-hs><div class="hs-pin"><div class="wrap">
+  ${head(ko ? "서비스" : "Services", ko ? "진단에서 운영까지, 이어지는 네 가지 서비스" : "Four connected services, from diagnosis to operation", "h-svc", ko ? "어느 단계에서든 시작할 수 있고, 필요한 다음 단계로 자연스럽게 이어집니다." : "Start at any stage; each one leads naturally into the next.")}</div>
+  <div class="hs-view" tabindex="-1"><div class="svc-grid hs-track">${SERVICES.map((s, i) => { const c = ko ? s.k : s.e; return `<a class="card" href="${path(lang, "services")}#${s.id}" data-light data-tilt><div class="top-row"><span class="num">0${i + 1}</span></div><h3 class="h3">${svcName(s, lang)}</h3>${ko ? `<p class="en-name">${s.en.name}</p>` : ""}
     <dl><div><dt>${ko ? "문제" : "Problem"}</dt><dd>${c.problem}</dd></div><div><dt>${ko ? "하는 일" : "We do"}</dt><dd>${c.work.slice(0, 3).join(" · ")}</dd></div><div><dt>${ko ? "산출물" : "You get"}</dt><dd>${c.out.join(" · ")}</dd></div></dl>
-    <span class="go">${ko ? "자세히 보기" : "Details"} ${ARR}</span></a>`; }).join("")}</div>
-</div></section>
+    <span class="go">${ko ? "자세히 보기" : "Details"} ${ARR}</span></a>`; }).join("")}</div></div>
+  <div class="wrap hs-foot" aria-hidden="true"><span class="hs-bar"><i></i></span><span class="hs-count"><b>01</b> / 0${SERVICES.length}</span><span class="hs-hint">${ko ? "스크롤하면 옆으로 넘어갑니다" : "Scroll to move across"}</span></div>
+</div></div></section>
 
 <section class="sec dark" aria-labelledby="h-method"><div class="wrap">
   ${head(ko ? "방법론" : "Method", ko ? "발견, 설계, 구현, 운영" : "Discover. Architect. Engineer. Govern.", "h-method", ko ? "단계마다 눈으로 확인할 수 있는 산출물이 남고, 다음 단계로 갈지는 그 산출물을 보고 함께 정합니다." : "Every stage leaves something you can inspect, and we decide together whether to move on.")}
@@ -213,7 +214,7 @@ pages.home = (lang) => {
 </div></section>
 
 <section class="sec white" aria-labelledby="h-founder"><div class="wrap founder">
-  <div class="l"><p class="kicker">${ko ? "대표" : "Founder"}</p><p class="big" id="h-founder" data-reveal>${ko ? "기획한 사람이 만들고,<br>만든 사람이 설명합니다." : "The person who designs it<br>builds it — and explains it."}</p>
+  <div class="l"><p class="kicker">${ko ? "대표" : "Founder"}</p><p class="big" id="h-founder"><span class="fill" data-fill>${ko ? "기획한 사람이 만들고,<br>만든 사람이 설명합니다." : "The person who designs it<br>builds it — and explains it."}</span></p>
     <p class="lede" style="font-size:17px">${ko ? "아뜰리에 AX는 대표 한 사람이 직접 운영하는 스튜디오입니다. 첫 상담에서 들은 이야기가 설계서가 되고, 그 설계서를 쓴 사람이 직접 시스템을 만들고 운영 방법을 설명합니다." : "Atelier AX is run directly by its founder. What you say in the first conversation becomes the design, and the person who wrote that design builds the system and explains how to run it."}</p>
     <div class="ctas"><a class="btn ghost" href="${path(lang, "about")}">${ko ? "회사 소개" : "About the studio"} ${ARR}</a></div></div>
   <div class="r"><div class="profile" data-reveal><div class="who"><span class="mono">${MARK("#eef2fb")}</span><div><b>${f.role}</b><span>${f.line}</span></div></div>

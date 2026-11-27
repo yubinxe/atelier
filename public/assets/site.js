@@ -239,3 +239,51 @@ if (room) {
   });
   addEventListener("pageshow", () => room.classList.remove("go"));
 }
+
+// ── v6 애플식 동적 효과 ──
+// 형제끼리 차례로 등장
+const seen = new Set();
+$$("[data-reveal]").forEach((el) => { const p = el.parentElement; if (seen.has(p)) return; seen.add(p); [...p.children].filter((c) => c.hasAttribute("data-reveal")).forEach((c, i) => { if (!c.style.transitionDelay) c.style.setProperty("--rd", `${Math.min(i, 6) * 85}ms`); }); });
+
+// 서비스 하이라이트: 세로 스크롤을 가로 이동으로 바꾼다(넓은 화면). 좁은 화면은 손가락으로 넘긴다.
+const hs = $("[data-hs]");
+if (hs) {
+  const view = $(".hs-view", hs), track = $(".hs-track", hs), cards = $$(".card", track), cnt = $(".hs-count b", hs);
+  const wide = matchMedia("(min-width: 1081px)");
+  let dist = 0;
+  const pin = () => wide.matches && !reduce;
+  const shade = () => { const vr = view.getBoundingClientRect(), anchor = vr.left + parseFloat(getComputedStyle(track).paddingLeft); let best = 0, bd = 1e9;
+    cards.forEach((c, i) => { const r = c.getBoundingClientRect(), d = Math.abs(r.left - anchor), k = Math.min(1, Math.max(0, (r.right - vr.right) / r.width, (vr.left - r.left) / r.width)); if (d < bd) { bd = d; best = i; } if (!reduce) { c.style.setProperty("--cs", (1 - k * 0.06).toFixed(3)); c.style.setProperty("--co", (1 - k * 0.45).toFixed(3)); } });
+    if (cnt) cnt.textContent = String(best + 1).padStart(2, "0"); };
+  const upd = () => {
+    if (pin()) { const r = hs.getBoundingClientRect(), p = Math.min(1, Math.max(0, -r.top / Math.max(1, dist))); track.style.transform = `translate3d(${(-p * dist).toFixed(1)}px,0,0)`; hs.style.setProperty("--hb", (0.25 + p * 0.75).toFixed(3)); }
+    else { const p = view.scrollLeft / Math.max(1, view.scrollWidth - view.clientWidth); hs.style.setProperty("--hb", (0.25 + p * 0.75).toFixed(3)); }
+    shade();
+  };
+  const size = () => {
+    if (pin()) { dist = Math.max(0, track.scrollWidth - view.clientWidth); const pinEl = $(".hs-pin", hs); hs.style.height = `${pinEl.offsetHeight + dist}px`; pinEl.style.position = "sticky"; pinEl.style.top = `${Math.max(0, (innerHeight - pinEl.offsetHeight) / 2)}px`; }
+    else { hs.style.height = ""; track.style.transform = ""; const pinEl = $(".hs-pin", hs); pinEl.style.position = ""; pinEl.style.top = ""; }
+    upd();
+  };
+  addEventListener("scroll", upd, { passive: true }); view.addEventListener("scroll", upd, { passive: true });
+  addEventListener("resize", size); wide.addEventListener?.("change", size); size();
+  // 키보드로 카드에 들어가면 그 카드가 보이도록 스크롤 위치를 맞춘다
+  cards.forEach((c, i) => c.addEventListener("focus", () => { if (!pin()) return; const top = hs.getBoundingClientRect().top + scrollY; scrollTo({ top: top + (dist * i) / Math.max(1, cards.length - 1), behavior: reduce ? "auto" : "smooth" }); }));
+}
+
+// 문장 채움: 섹션이 올라오는 만큼 글자가 진해진다
+const fills = $$("[data-fill]");
+if (fills.length) {
+  const fillUpd = () => { const vh = innerHeight; for (const f of fills) { const s = f.closest("section") || f, r = s.getBoundingClientRect(); const p = reduce ? 1 : Math.min(1, Math.max(0, (vh * 0.8 - r.top) / (vh * 0.75))); f.style.setProperty("--f", `${(p * 100).toFixed(1)}%`); } };
+  addEventListener("scroll", fillUpd, { passive: true }); addEventListener("resize", fillUpd); fillUpd();
+}
+
+// 카드 3D 기울기 + 빛 반사
+if (!reduce && matchMedia("(hover: hover) and (pointer: fine)").matches) $$(".pain, .ind .tile, .steps4 li, [data-tilt]").forEach((el) => {
+  let raf = 0, ev = null;
+  const apply = () => { raf = 0; const r = el.getBoundingClientRect(), x = (ev.clientX - r.left) / r.width - 0.5, y = (ev.clientY - r.top) / r.height - 0.5;
+    el.style.transform = `perspective(1000px) rotateX(${(-y * 7).toFixed(2)}deg) rotateY(${(x * 9).toFixed(2)}deg) translateY(-4px)`;
+    el.style.setProperty("--tx", `${(x + 0.5) * 100}%`); el.style.setProperty("--ty", `${(y + 0.5) * 100}%`); };
+  el.addEventListener("pointermove", (e) => { ev = e; el.classList.add("tilting"); if (!raf) raf = requestAnimationFrame(apply); });
+  el.addEventListener("pointerleave", () => { el.classList.remove("tilting"); el.style.transform = ""; });
+});
