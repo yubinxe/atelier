@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 import { ORG, SERVICES, METHOD, WORK, PAINS, BA, DIFF, INDUSTRIES, FOUNDER, FAQ, POSTS, TOPICS } from "./content.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url)), ROOT = join(HERE, "..", "public");
-const V = "6"; // 정적 자산 캐시 버전
+const V = "7"; // 정적 자산 캐시 버전
 const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const MARK = (c = "currentColor") => `<svg viewBox="0 0 26 26" aria-hidden="true"><rect x="1" y="1" width="24" height="24" rx="6" fill="none" stroke="${c}" stroke-width="1.5"/><path d="M7 21V12a6 6 0 0 1 12 0v9" fill="none" stroke="${c}" stroke-width="1.5"/><path d="M13 6.5V21" stroke="#9dbbff" stroke-width="1.5"/></svg>`;
 const ARR = '<span class="arr" aria-hidden="true">→</span>';
@@ -113,6 +113,14 @@ function flowSVG(ko) {
 </div>`;
 }
 
+// 실제 Studio Demo 화면 캡처(가상 데이터로 움직이는 화면)
+const SHOTS = {
+  "lounge-desk": ["3D 라운지 · 책상 시점", "3D lounge · desk view"], lounge: ["3D 라운지 · 전경", "3D lounge · overview"], "lounge-window": ["3D 라운지 · 창가", "3D lounge · window"],
+  "lounge-top": ["3D 라운지 · 위에서", "3D lounge · top"], floor: ["모델하우스 평면", "Model house floor"], board: ["프로젝트 진행 보드", "Project board"],
+  studio: ["프로젝트 스튜디오", "Project Studio"], console: ["운영 관제 콘솔(초기판)", "Operations console (first edition)"],
+};
+const shot = (k, ko, cls = "", big = false) => `<img${cls ? ` class="${cls}"` : ""} src="/assets/shots/${k}${big ? "" : "-s"}.webp" ${big ? `srcset="/assets/shots/${k}-s.webp 640w, /assets/shots/${k}.webp 1440w" sizes="(max-width: 700px) 90vw, 60vw" ` : ""}width="${big ? 1440 : 640}" height="${big ? 900 : 400}" loading="lazy" decoding="async" alt="${SHOTS[k][ko ? 0 : 1]}">`;
+
 const pages = {};
 
 pages.home = (lang) => {
@@ -132,13 +140,13 @@ pages.home = (lang) => {
     <p class="motto" data-rise style="--d:1.4s">${ko ? "기획한 사람이 만들고, 만든 사람이 설명합니다." : "The person who designs it builds it — and explains it."}</p>
     <div class="ctas" data-rise style="--d:1.55s"><a class="btn" href="${path(lang, "contact")}" data-magnet>${ko ? "상담 신청하기" : "Start a conversation"} ${ARR}</a><a class="btn ghost" href="/studio/">${ko ? "Studio Demo 보기" : "See the Studio Demo"}</a></div>
   </div>
-  <div data-rise style="--d:1.1s">${flowSVG(ko)}</div>
+  <div class="hero-vis" data-rise style="--d:1.1s"><figure class="hf hf1" data-depth="22" aria-hidden="true">${shot("lounge-desk", ko)}<figcaption>${ko ? "3D 라운지" : "3D lounge"}</figcaption></figure><figure class="hf hf2" data-depth="34" aria-hidden="true">${shot("board", ko)}<figcaption>${ko ? "진행 보드" : "Project board"}</figcaption></figure>${flowSVG(ko)}</div>
 </div>
   <a class="cue" href="#reel" data-rise style="--d:2s"><i aria-hidden="true"></i>${ko ? "스크롤" : "Scroll"}</a>
 </section>
 <section class="strip" aria-label="${ko ? "서비스 요약" : "Services at a glance"}"><div class="wrap"><ul>${SERVICES.map((s) => `<li><b>${svcName(s, lang)}</b>${ko ? s.k.short : s.e.short}</li>`).join("")}</ul></div></section>
 
-<section class="reel" id="reel" aria-label="${ko ? "하는 일" : "What we do"}"><div class="reel-track">${[0, 1].map((k) => `<ul${k ? ' aria-hidden="true"' : ""}>${(ko ? ['업무 진단', '프로세스 재설계', '워크플로 자동화', 'AI 에이전트', '사람의 승인 관문', '검증 기록', '운영과 개선'] : ['Process diagnosis', 'Workflow redesign', 'Automation', 'AI agents', 'Human approval gates', 'Verified records', 'Operate & improve']).map((x) => `<li>${x}</li>`).join("")}</ul>`).join("")}</div></section>
+<section class="reel" id="reel" aria-label="${ko ? "하는 일" : "What we do"}"><div class="reel-track">${[0, 1].map((k) => `<ul${k ? ' aria-hidden="true"' : ""}>${(ko ? ['업무 진단', '프로세스 재설계', '워크플로 자동화', 'AI 에이전트', '사람의 승인 관문', '검증 기록', '운영과 개선'] : ['Process diagnosis', 'Workflow redesign', 'Automation', 'AI agents', 'Human approval gates', 'Verified records', 'Operate & improve']).map((x, i) => `<li data-peek="${["board", "floor", "console", "lounge-desk", "lounge", "board", "lounge-window"][i]}">${x}</li>`).join("")}</ul>`).join("")}</div></section>
 
 <section class="mani" data-mani aria-labelledby="h-mani"><div class="mani-pin"><div class="wrap">
   <p class="kicker">${ko ? "관점" : "Point of view"}</p>
@@ -146,6 +154,12 @@ pages.home = (lang) => {
   <ul class="figs">${(ko ? [["4", "서비스 영역"], ["6", "단계로 나눈 업무 흐름"], ["4", "사람이 승인하는 관문"], ["1", "처음부터 끝까지 맡는 사람"]] : [["4", "service areas"], ["6", "stages in the workflow"], ["4", "human approval gates"], ["1", "person from start to finish"]]).map(([n, t]) => `<li><b data-count="${n}">${n}</b><span>${t}</span></li>`).join("")}</ul>
   <p class="figs-note">${ko ? "6단계·4관문은 Studio Demo에서 확인할 수 있는 업무 구조입니다." : "The six stages and four gates are the workflow structure you can inspect in the Studio Demo."}</p>
 </div></div></section>
+
+<section class="zp" data-zp aria-labelledby="h-zp"><div class="zp-head wrap"><p class="kicker">${ko ? "작업 화면" : "On screen"}</p><h2 class="h2" id="h-zp">${ko ? "설명보다 먼저,<br>실제로 움직이는 화면." : "Before the explanation,<br>a screen that actually runs."}</h2></div>
+<div class="zp-pin">
+  ${[['lounge-desk', 4], ['board', 5], ['floor', 6], ['lounge-window', 5], ['console', 6], ['studio', 8], ['lounge-top', 9]].map(([k, z], i) => `<figure class="zp-i zp-${i}" style="--z:${z}"><div class="zp-in">${shot(k, ko, "", true)}<figcaption>${SHOTS[k][ko ? 0 : 1]}</figcaption></div></figure>`).join("")}
+  <p class="zp-note">${ko ? "Studio Demo 실제 화면 · 시뮬레이션 · 가상 데이터" : "Actual Studio Demo screens · simulation · synthetic data"}</p>
+</div><div class="zp-sp" aria-hidden="true"></div></section>
 
 <section class="sec" aria-labelledby="h-pain"><div class="wrap">
   ${head(ko ? "문제" : "The problem", ko ? "AI 도구는 늘었는데, 일하는 방식은 그대로입니다" : "More AI tools. The same way of working.", "h-pain", ko ? "대부분의 비효율은 기술이 없어서가 아니라, 업무가 끊긴 채 사람 손으로 이어지기 때문에 생깁니다." : "Most inefficiency is not a lack of technology. It comes from work that is broken into pieces and stitched together by hand.")}
@@ -170,6 +184,25 @@ pages.home = (lang) => {
     <span class="go">${ko ? "자세히 보기" : "Details"} ${ARR}</span></a>`; }).join("")}</div></div>
   <div class="wrap hs-foot" aria-hidden="true"><span class="hs-bar"><i></i></span><span class="hs-count"><b>01</b> / 0${SERVICES.length}</span><span class="hs-hint">${ko ? "스크롤하면 옆으로 넘어갑니다" : "Scroll to move across"}</span></div>
 </div></div></section>
+
+<section class="sec bento-sec" aria-labelledby="h-bento"><div class="wrap">
+  ${head(ko ? "작동 방식" : "How it works", ko ? "AI가 맡는 일, 사람이 정하는 일" : "What AI takes on. What people decide.", "h-bento", ko ? "아래 화면은 모두 설명을 위한 예시입니다. 실제 화면은 업무와 기존 시스템에 맞춰 설계합니다." : "Every screen below is an illustration. Real screens are designed around your work and existing systems.")}
+  <div class="bento" data-bento>
+    <article class="bx inbox" data-reveal><header><span class="tag">${ko ? "분류" : "Sort"}</span><h3 class="h3">${ko ? "메일은 AI가 먼저 읽고 나눕니다" : "AI reads and sorts the inbox first"}</h3></header>
+      <ul class="mails">${(ko ? [["거래처 A", "11월 납품분 견적 요청", "견적", "q"], ["법무 담당", "계약서 수정본 검토 부탁드립니다", "계약", "c"], ["고객 B", "배송 일정 문의", "문의", "a"], ["재무팀", "월말 정산 자료 전달", "정산", "s"], ["거래처 C", "12월 단가 변경 안내", "견적", "q"]] : [["Supplier A", "Quote request for November delivery", "Quote", "q"], ["Legal", "Please review the contract revision", "Contract", "c"], ["Client B", "Question about delivery dates", "Enquiry", "a"], ["Finance", "Month-end settlement files", "Finance", "s"], ["Supplier C", "Price change from December", "Quote", "q"]]).map(([w, t, g, c], i) => `<li style="--i:${i}"><i class="av">${w.slice(0, 1)}</i><span><b>${w}</b><em>${t}</em></span><mark class="${c}">${g}</mark></li>`).join("")}</ul>
+      <p class="ex">${ko ? "예시 화면" : "Illustration"}</p></article>
+    <article class="bx approve" data-reveal><header><span class="tag">${ko ? "승인" : "Approve"}</span><h3 class="h3">${ko ? "중요한 결과는 사람이 승인합니다" : "People approve what matters"}</h3></header>
+      <div class="ap-card"><span class="ap-t">${ko ? "주간 실적 보고서" : "Weekly report"}</span><span class="ap-s">${ko ? "AI 초안 · 검토 대기" : "AI draft · awaiting review"}</span><span class="ap-btn"><b>${ko ? "승인하기" : "Approve"}</b><b>✓ ${ko ? "승인됨" : "Approved"}</b></span><i class="ap-cur" aria-hidden="true"></i></div></article>
+    <article class="bx sum" data-reveal><header><span class="tag">${ko ? "요약" : "Summarise"}</span><h3 class="h3">${ko ? "긴 문서는 요약과 초안으로" : "Long documents become summaries"}</h3></header>
+      <div class="doc"><i></i><i></i><i class="hl"></i><i></i><i class="hl"></i><i></i></div><p class="typed" data-type="${ko ? "요약: 납기 2주 연장 요청, 단가는 유지, 회신 기한 금요일." : "Summary: two-week extension requested, price unchanged, reply by Friday."}"></p></article>
+    <article class="bx ring" data-reveal><header><span class="tag">${ko ? "검증" : "Verify"}</span><h3 class="h3">${ko ? "검사는 숨기지 않고 기록합니다" : "Checks are recorded, not hidden"}</h3></header>
+      <div class="rg"><svg viewBox="0 0 120 120" aria-hidden="true"><circle class="t" cx="60" cy="60" r="50"/><circle class="v" cx="60" cy="60" r="50"/></svg><span class="rg-n"><b data-ring>0</b>/10<small>${ko ? "통과" : "passed"}</small></span></div>
+      <p class="rg-l"><span class="ok">● ${ko ? "통과" : "pass"}</span><span class="bad">● ${ko ? "실패 → 재검사" : "fail → re-check"}</span><span class="un">○ ${ko ? "미검증" : "unverified"}</span></p></article>
+    <article class="bx log" data-reveal><header><span class="tag">${ko ? "기록" : "Log"}</span><h3 class="h3">${ko ? "모든 실행이 로그로 남습니다" : "Every run leaves a log"}</h3></header>
+      <ol class="term" data-term>${(ko ? [["09:00:02", "수집", "지점 12곳 자료 수신"], ["09:00:05", "정리", "형식 통일 · 누락 2건 표시"], ["09:00:09", "AI", "요약 초안 생성"], ["09:01:40", "승인", "담당자 확인 완료"], ["09:01:41", "발송", "보고서 전달 · 기록 저장"]] : [["09:00:02", "collect", "files from 12 branches"], ["09:00:05", "tidy", "format unified · 2 gaps flagged"], ["09:00:09", "AI", "summary draft written"], ["09:01:40", "approve", "reviewer signed off"], ["09:01:41", "send", "report delivered · logged"]]).map(([t, k, m]) => `<li><time>${t}</time><b>${k}</b><span>${m}</span></li>`).join("")}</ol></article>
+    <a class="bx floor" href="/studio/#/bridge" data-reveal><header><span class="tag">${ko ? "가시화" : "See it"}</span><h3 class="h3">${ko ? "AI마다 지금 무엇을 하는지 한눈에" : "See what every AI is doing, at a glance"}</h3><span class="go">${ko ? "모델하우스 열기" : "Open the model house"} ${ARR}</span></header>${shot("floor", ko, "", true)}</a>
+  </div>
+</div></section>
 
 <section class="sec dark" aria-labelledby="h-method"><div class="wrap">
   ${head(ko ? "방법론" : "Method", ko ? "발견, 설계, 구현, 운영" : "Discover. Architect. Engineer. Govern.", "h-method", ko ? "단계마다 눈으로 확인할 수 있는 산출물이 남고, 다음 단계로 갈지는 그 산출물을 보고 함께 정합니다." : "Every stage leaves something you can inspect, and we decide together whether to move on.")}
@@ -223,9 +256,9 @@ pages.home = (lang) => {
 
 <section class="sec" aria-labelledby="h-start"><div class="wrap">
   ${head(ko ? "시작하는 방법" : "How to start", ko ? "정리된 기획서가 없어도 됩니다" : "No formal brief required", "h-start")}
-  <ol class="steps4">${(ko ? [["문의", "해결하고 싶은 업무를 짧게 적어 보내 주세요."], ["첫 대화", "현재 흐름과 목표를 함께 확인합니다."], ["범위와 제안", "범위·일정·산출물을 제안드립니다."], ["착수", "작은 과제부터 시작해 단계마다 결과를 봅니다."]] : [["Enquiry", "Send a short note about the work you want to change."], ["First conversation", "We look at the current flow and the goal together."], ["Scope & proposal", "We propose scope, schedule and deliverables."], ["Start", "We begin small and review results at every stage."]]).map(([b, s]) => `<li data-reveal><b>${b}</b><span>${s}</span></li>`).join("")}</ol>
+  <ol class="steps4 stack" data-stack>${(ko ? [["문의", "해결하고 싶은 업무를 짧게 적어 보내 주세요."], ["첫 대화", "현재 흐름과 목표를 함께 확인합니다."], ["범위와 제안", "범위·일정·산출물을 제안드립니다."], ["착수", "작은 과제부터 시작해 단계마다 결과를 봅니다."]] : [["Enquiry", "Send a short note about the work you want to change."], ["First conversation", "We look at the current flow and the goal together."], ["Scope & proposal", "We propose scope, schedule and deliverables."], ["Start", "We begin small and review results at every stage."]]).map(([b, s], i) => `<li style="--i:${i}"><div class="st-card"><span class="st-n">0${i + 1}</span><div class="st-t"><b>${b}</b><span>${s}</span></div><span class="st-ico">${[ICON.doc, ICON.split, ICON.gather, ICON.gear][i]}</span></div></li>`).join("")}</ol>
 </div></section>
-<section class="finale" aria-labelledby="h-fin"><div class="grain" aria-hidden="true"></div><div class="wrap">
+<section class="finale" aria-labelledby="h-fin"><div class="wall" aria-hidden="true">${[["lounge-desk", "board", "floor", "console", "lounge-window"], ["studio", "lounge", "lounge-top", "board", "floor"], ["console", "lounge-window", "studio", "lounge-desk", "lounge"]].map((row, r) => `<div class="wall-row${r % 2 ? " rev" : ""}">${[...row, ...row].map((k) => `<img src="/assets/shots/${k}-s.webp" width="640" height="400" loading="lazy" decoding="async" alt="">`).join("")}</div>`).join("")}</div><div class="grain" aria-hidden="true"></div><div class="wrap">
   <p class="kicker">${ko ? "다음 장면" : "Next scene"}</p>
   <h2 class="display" id="h-fin" data-reveal="mask">${ko ? "다음 장면은,<br><span class=\"grad\">당신의 업무입니다.</span>" : "The next scene<br><span class=\"grad\">is your work.</span>"}</h2>
   <p class="lede" data-reveal>${ko ? "지금 어떻게 일하는지, 무엇이 불편한지만 적어 주시면 됩니다. 내용을 확인한 뒤 대표가 직접 회신드립니다." : "Just describe how the work is done today and what gets in the way. The founder will reply personally."}</p>

@@ -5,7 +5,7 @@ const ko = document.documentElement.lang !== "en";
 
 // ── 헤더: 어두운 첫 화면 위에서는 밝은 글자, 내려가면 바탕색 ──
 const top = $("#top"), firstDark = $(".hero, .page-head");
-const darkSecs = $$(".mani, .room, .finale, .reel, .strip, .sec.dark, .foot");
+const darkSecs = $$(".mani, .zp, .room, .finale, .reel, .strip, .sec.dark, .foot");
 const onScroll = () => {
   if (!top) return; const past = !firstDark || scrollY > firstDark.offsetHeight - 80; top.classList.toggle("on-dark", !past); top.classList.toggle("scrolled", past && scrollY > 8);
   const y = top.offsetHeight / 2; top.classList.toggle("dk", past && darkSecs.some((s) => { const r = s.getBoundingClientRect(); return r.top <= y && r.bottom > y; }));
@@ -279,7 +279,7 @@ if (fills.length) {
 }
 
 // 카드 3D 기울기 + 빛 반사
-if (!reduce && matchMedia("(hover: hover) and (pointer: fine)").matches) $$(".pain, .ind .tile, .steps4 li, [data-tilt]").forEach((el) => {
+if (!reduce && matchMedia("(hover: hover) and (pointer: fine)").matches) $$(".pain, .ind .tile, .steps4:not(.stack) li, [data-tilt]").forEach((el) => {
   let raf = 0, ev = null;
   const apply = () => { raf = 0; const r = el.getBoundingClientRect(), x = (ev.clientX - r.left) / r.width - 0.5, y = (ev.clientY - r.top) / r.height - 0.5;
     el.style.transform = `perspective(1000px) rotateX(${(-y * 7).toFixed(2)}deg) rotateY(${(x * 9).toFixed(2)}deg) translateY(-4px)`;
@@ -287,3 +287,53 @@ if (!reduce && matchMedia("(hover: hover) and (pointer: fine)").matches) $$(".pa
   el.addEventListener("pointermove", (e) => { ev = e; el.classList.add("tilting"); if (!raf) raf = requestAnimationFrame(apply); });
   el.addEventListener("pointerleave", () => { el.classList.remove("tilting"); el.style.transform = ""; });
 });
+
+// ── v7 시각 요소 ──
+// 히어로 카드: 포인터 깊이감
+const hv = $(".hero-vis");
+if (hv && !reduce && matchMedia("(hover: hover)").matches) {
+  const fs = $$(".hf", hv);
+  $(".hero")?.addEventListener("pointermove", (e) => { const x = e.clientX / innerWidth - 0.5, y = e.clientY / innerHeight - 0.5; fs.forEach((f) => { const d = +f.dataset.depth; f.style.transform = `translate(${(-x * d).toFixed(1)}px, ${(-y * d).toFixed(1)}px)`; }); }, { passive: true });
+}
+
+// 마퀴 단어 위 미리보기 — 커서를 느슨하게 따라오며 속도만큼 기운다
+const reelEl = $(".reel");
+if (reelEl && !reduce && matchMedia("(hover: hover) and (pointer: fine)").matches) {
+  const peek = document.createElement("div"); peek.className = "peek"; peek.setAttribute("aria-hidden", "true"); peek.innerHTML = '<img alt="">'; document.body.append(peek);
+  const img = $("img", peek); let tx = 0, ty = 0, x = 0, y = 0, raf = 0, cur = "";
+  const loop = () => { const dx = tx - x; x += dx * 0.16; y += (ty - y) * 0.16; peek.style.transform = `translate(${(x - 150).toFixed(1)}px, ${(y - 210).toFixed(1)}px) rotate(${Math.max(-12, Math.min(12, dx * 0.08)).toFixed(2)}deg)`; raf = peek.classList.contains("on") || Math.abs(dx) > 0.5 ? requestAnimationFrame(loop) : 0; };
+  reelEl.addEventListener("pointermove", (e) => { tx = e.clientX; ty = e.clientY; const li = e.target.closest("[data-peek]"); if (li) { const k = li.dataset.peek; if (k !== cur) { cur = k; img.src = `/assets/shots/${k}-s.webp`; } if (!peek.classList.contains("on")) { x = tx; y = ty; } peek.classList.add("on"); } else peek.classList.remove("on"); if (!raf) raf = requestAnimationFrame(loop); }, { passive: true });
+  reelEl.addEventListener("pointerleave", () => peek.classList.remove("on"));
+}
+
+// 줌 갤러리
+const zp = $("[data-zp]");
+if (zp && !reduce) {
+  const pin = $(".zp-pin", zp);
+  const zupd = () => { const r = pin.parentElement.getBoundingClientRect(), head = $(".zp-head", zp).offsetHeight, total = zp.offsetHeight - head - innerHeight; const p = Math.min(1, Math.max(0, (-r.top - head) / Math.max(1, total))); zp.style.setProperty("--zp", (p * p * (3 - 2 * p)).toFixed(4)); };
+  addEventListener("scroll", zupd, { passive: true }); addEventListener("resize", zupd); zupd();
+}
+
+// 벤토: 보일 때만 움직인다
+const bento = $("[data-bento]");
+if (bento) {
+  const typed = $(".typed", bento), rg = $(".rg", bento), rn = $("[data-ring]", bento), term = $$("[data-term] li", bento);
+  let on = false, timers = [];
+  const clear = () => { timers.forEach(clearTimeout); timers = []; };
+  const T = (fn, ms) => timers.push(setTimeout(fn, ms));
+  const typeLoop = () => { if (!on || !typed) return; const full = typed.dataset.type; let i = 0; typed.textContent = ""; const step = () => { if (!on) return; typed.textContent = full.slice(0, ++i); if (i < full.length) T(step, 55); else T(typeLoop, 2600); }; T(step, 900); };
+  const ringSeq = [[3, 0], [5, 0], [7, 0], [7, 1], [8, 0], [9, 0], [10, 0]];
+  const ringLoop = (k = 0) => { if (!on || !rg) return; const [n, bad] = ringSeq[k]; rn.textContent = String(n); rg.style.setProperty("--rv", (n / 10).toFixed(2)); rg.classList.toggle("bad", !!bad); T(() => ringLoop((k + 1) % ringSeq.length), k === ringSeq.length - 1 ? 2400 : bad ? 1300 : 800); };
+  const termLoop = (k = 0) => { if (!on) return; if (k === 0) term.forEach((l) => l.classList.remove("on")); if (k < term.length) { term[k].classList.add("on"); T(() => termLoop(k + 1), 850); } else T(() => termLoop(0), 2600); };
+  const start = () => { if (on) return; on = true; bento.classList.add("on"); if (reduce) { typed && (typed.textContent = typed.dataset.type); rn && (rn.textContent = "10"); rg?.style.setProperty("--rv", "1"); term.forEach((l) => l.classList.add("on")); return; } typeLoop(); ringLoop(); termLoop(); };
+  const stop = () => { on = false; clear(); bento.classList.remove("on"); };
+  new IntersectionObserver(([e]) => (e.isIntersecting ? start() : stop()), { threshold: 0.15 }).observe(bento);
+}
+
+// 시작 단계 — 다음 카드가 덮을수록 앞 카드가 작아지고 어두워진다
+const stack = $("[data-stack]");
+if (stack && !reduce) {
+  const items = $$("li", stack);
+  const supd = () => { items.forEach((li, i) => { const nx = items[i + 1]; if (!nx) return; const d = nx.getBoundingClientRect().top - li.getBoundingClientRect().top, h = li.offsetHeight; const c = Math.min(1, Math.max(0, 1 - d / h)); const card = li.firstElementChild; card.style.setProperty("--ss", (1 - c * 0.05).toFixed(4)); card.style.setProperty("--sd", c.toFixed(3)); }); };
+  addEventListener("scroll", supd, { passive: true }); addEventListener("resize", supd); supd();
+}
